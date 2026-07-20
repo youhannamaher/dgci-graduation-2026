@@ -19,6 +19,32 @@ const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey)
   : null;
 
+// --- CIRCUIT BREAKER SAFETY ---
+let lastDbFailureTime = 0;
+const DB_SUSPENSION_DURATION = 60000; // Suspend database connection attempts for 60 seconds after a failure
+
+function checkDbHealth(): boolean {
+  if (Date.now() - lastDbFailureTime < DB_SUSPENSION_DURATION) {
+    return false; // Database is suspended (unhealthy)
+  }
+  return true; // Database is healthy to try
+}
+
+function reportDbFailure() {
+  lastDbFailureTime = Date.now();
+  console.warn('Database health check failed. Suspending DB queries for 60s to prevent loading hangs.');
+}
+
+// Timeout utility for server-side database operations
+function withTimeout<T>(promise: PromiseLike<T>, ms = 3000): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase query timed out')), ms)
+    )
+  ]);
+}
+
 // --- DTO MAPPERS FOR SUPABASE (snake_case) TO CLIENT (camelCase) ---
 const mapGradDbToClient = (g: any) => ({
   id: g.id,
@@ -115,16 +141,6 @@ const mapPhotoClientToDb = (p: any) => ({
   status: p.status
 });
 
-// Timeout utility for server-side database operations
-function withTimeout<T>(promise: PromiseLike<T>, ms = 3500): Promise<T> {
-  return Promise.race([
-    Promise.resolve(promise),
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error('Supabase query timed out')), ms)
-    )
-  ]);
-}
-
 // GET Handler
 export async function GET(
   request: Request,
@@ -132,8 +148,8 @@ export async function GET(
 ) {
   const { key } = await params;
 
-  // If Supabase is connected, load from Supabase database
-  if (isSupabaseConfigured && supabase) {
+  // If Supabase is connected and DB is healthy, load from Supabase database
+  if (isSupabaseConfigured && supabase && checkDbHealth()) {
     try {
       switch (key) {
         case 'ceremony-info': {
@@ -143,11 +159,10 @@ export async function GET(
               .select('*')
               .eq('type', 'ceremony_info')
               .single(),
-            3500
+            3000
           );
 
           if (error || !data) {
-            // Seeding or default fallback
             return NextResponse.json(readLocalJson('ceremony-info.json'));
           }
           return NextResponse.json(JSON.parse(data.url));
@@ -159,20 +174,13 @@ export async function GET(
               .from('program_items')
               .select('*')
               .order('item_order', { ascending: true }),
-            3500
+            3000
           );
 
           if (error) {
             console.error('Supabase program fetch error:', error);
-            return NextResponse.json({
-              _debugError: error,
-              _debugConfig: {
-                hasUrl: !!supabaseUrl,
-                hasAnon: !!supabaseAnonKey,
-                hasService: !!supabaseServiceKey,
-                urlValue: supabaseUrl
-              }
-            }, { status: 500 });
+            reportDbFailure();
+            return NextResponse.json(readLocalJson('program.json'));
           }
           if (!data || data.length === 0) {
             return NextResponse.json(readLocalJson('program.json'));
@@ -186,20 +194,13 @@ export async function GET(
               .from('graduates')
               .select('*')
               .order('order_number', { ascending: true }),
-            3500
+            3000
           );
 
           if (error) {
             console.error('Supabase graduates fetch error:', error);
-            return NextResponse.json({
-              _debugError: error,
-              _debugConfig: {
-                hasUrl: !!supabaseUrl,
-                hasAnon: !!supabaseAnonKey,
-                hasService: !!supabaseServiceKey,
-                urlValue: supabaseUrl
-              }
-            }, { status: 500 });
+            reportDbFailure();
+            return NextResponse.json(readLocalJson('graduates.json'));
           }
           if (!data || data.length === 0) {
             return NextResponse.json(readLocalJson('graduates.json'));
@@ -213,10 +214,11 @@ export async function GET(
               .from('messages')
               .select('*')
               .order('created_at', { ascending: false }),
-            3500
+            3000
           );
 
           if (error || !data) {
+            if (error) reportDbFailure();
             return NextResponse.json(readLocalJson('messages.json'));
           }
           return NextResponse.json(data.map(mapMsgDbToClient));
@@ -228,10 +230,11 @@ export async function GET(
               .from('photos')
               .select('*')
               .order('created_at', { ascending: false }),
-            3500
+            3000
           );
 
           if (error || !data) {
+            if (error) reportDbFailure();
             return NextResponse.json(readLocalJson('gallery.json'));
           }
           return NextResponse.json(data.map(mapPhotoDbToClient));
@@ -242,10 +245,11 @@ export async function GET(
             supabase
               .from('media_links')
               .select('*'),
-            3500
+            3000
           );
 
           if (error || !data || data.length === 0) {
+            if (error) reportDbFailure();
             return NextResponse.json(readLocalJson('media-links.json'));
           }
 
@@ -265,12 +269,13 @@ export async function GET(
           return NextResponse.json({ error: 'Endpoint not found' }, { status: 404 });
       }
     } catch (e) {
-      console.error(`Supabase fetch failed on API for ${key}:`, e);
-      // Fallback to local files
+      console.error(`Supabase query timed out or failed on server for ${key}:`, e);
+      reportDbFailure();
+      // Fallback below to local files
     }
   }
 
-  // Local static files loader
+  // Local static files fallback loader
   let filename = '';
   switch (key) {
     case 'ceremony-info': filename = 'ceremony-info.json'; break;
@@ -295,7 +300,6 @@ export async function POST(
 ) {
   const { key } = await params;
   if (!isSupabaseConfigured || !supabase) {
-    // If Supabase is not set, return success indicating local write is fine
     return NextResponse.json({ success: true, localOnly: true });
   }
 
@@ -322,7 +326,6 @@ export async function POST(
         }
         if (action === 'update') {
           if (fields.isCurrent) {
-            // clear active for others first
             await supabase.from('program_items').update({ is_current: false }).neq('id', id);
           }
           const { error } = await supabase.from('program_items').update(mapProgClientToDb(fields)).eq('id', id);
