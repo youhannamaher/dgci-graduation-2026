@@ -168,31 +168,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setJourney(journeyTemplate as JourneyItem[]);
     setIsLoading(false);
 
-    // 2. Perform background database query to fetch live updates
+    // 2. Perform background database query to fetch live updates in a single combined request
     const loadAllDataBackground = async () => {
       try {
-        const [journeyRes, infoRes, progRes, gradsRes, msgRes, galleryRes, mediaRes] = await Promise.all([
-          fetch('/api/data/journey'),
-          fetch('/api/data/ceremony-info'),
-          fetch('/api/data/program'),
-          fetch('/api/data/graduates'),
-          fetch('/api/data/messages'),
-          fetch('/api/data/gallery'),
-          fetch('/api/data/media-links')
-        ]);
+        const res = await fetch('/api/data/all');
 
-        // Throw an error if any of the endpoints returned a non-200 status code
-        if (!journeyRes.ok || !infoRes.ok || !progRes.ok || !gradsRes.ok || !msgRes.ok || !galleryRes.ok || !mediaRes.ok) {
-          throw new Error('One or more API endpoints returned a non-200 status code');
+        if (!res.ok) {
+          throw new Error('Unified data API fetch failed');
         }
 
-        const journeyData = await journeyRes.json();
-        let infoData = await infoRes.json();
-        let progData = await progRes.json();
-        let gradsData = await gradsRes.json();
-        let msgData = await msgRes.json();
-        let galleryData = await galleryRes.json();
-        let mediaData = await mediaRes.json();
+        const combined = await res.json();
+        
+        let journeyData = combined.journey;
+        let infoData = combined.ceremonyInfo;
+        let progData = combined.program;
+        let gradsData = combined.graduates;
+        let msgData = combined.messages;
+        let galleryData = combined.photos;
+        let mediaData = combined.mediaLinks;
 
         // If local overrides exist, apply them
         if (typeof window !== 'undefined') {

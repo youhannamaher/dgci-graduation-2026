@@ -21,7 +21,7 @@ const supabase = isSupabaseConfigured
 
 // --- CIRCUIT BREAKER SAFETY ---
 let lastDbFailureTime = 0;
-const DB_SUSPENSION_DURATION = 60000; // Suspend database connection attempts for 60 seconds after a failure
+const DB_SUSPENSION_DURATION = 600000; // Suspend database connection attempts for 10 minutes after a failure to ensure static loading is lightning fast
 
 function checkDbHealth(): boolean {
   if (Date.now() - lastDbFailureTime < DB_SUSPENSION_DURATION) {
@@ -32,11 +32,11 @@ function checkDbHealth(): boolean {
 
 function reportDbFailure() {
   lastDbFailureTime = Date.now();
-  console.warn('Database health check failed. Suspending DB queries for 60s to prevent loading hangs.');
+  console.warn('Database health check failed. Suspending DB queries for 10m to prevent loading hangs.');
 }
 
-// Timeout utility for server-side database operations
-function withTimeout<T>(promise: PromiseLike<T>, ms = 3000): Promise<T> {
+// Timeout utility for server-side database operations (reduced to 1.5s for fast response)
+function withTimeout<T>(promise: PromiseLike<T>, ms = 1500): Promise<T> {
   return Promise.race([
     Promise.resolve(promise),
     new Promise<T>((_, reject) =>
@@ -152,6 +152,48 @@ export async function GET(
   if (isSupabaseConfigured && supabase && checkDbHealth()) {
     try {
       switch (key) {
+        case 'all': {
+          const [info, prog, grads, msgs, pics, links] = await Promise.all([
+            withTimeout(supabase.from('media_links').select('*').eq('type', 'ceremony_info').single(), 1500).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('program_items').select('*').order('item_order', { ascending: true }), 1500).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('graduates').select('*').order('order_number', { ascending: true }), 1500).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('messages').select('*').order('created_at', { ascending: false }), 1500).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('photos').select('*').order('created_at', { ascending: false }), 1500).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('media_links').select('*'), 1500).catch(() => ({ data: null, error: true }))
+          ]);
+
+          if (info.error || prog.error || grads.error || msgs.error || pics.error || links.error) {
+            reportDbFailure();
+          }
+
+          const infoData = info.data ? JSON.parse(info.data.url) : readLocalJson('ceremony-info.json');
+          const progData = prog.data && prog.data.length > 0 ? prog.data.map(mapProgDbToClient) : readLocalJson('program.json');
+          const gradsData = grads.data && grads.data.length > 0 ? grads.data.map(mapGradDbToClient) : readLocalJson('graduates.json');
+          const msgsData = msgs.data ? msgs.data.map(mapMsgDbToClient) : readLocalJson('messages.json');
+          const galleryData = pics.data ? pics.data.map(mapPhotoDbToClient) : readLocalJson('gallery.json');
+
+          let mediaLinksData = readLocalJson('media-links.json');
+          if (links.data && links.data.length > 0) {
+            const linksObj = { officialPhotosUrl: '', recapVideoUrl: '', fullCeremonyUrl: '' };
+            links.data.forEach((item: any) => {
+              if (item.type === 'photos') linksObj.officialPhotosUrl = item.url;
+              if (item.type === 'video_recap') linksObj.recapVideoUrl = item.url;
+              if (item.type === 'video_full') linksObj.fullCeremonyUrl = item.url;
+            });
+            mediaLinksData = linksObj;
+          }
+
+          return NextResponse.json({
+            journey: readLocalJson('journey.json'),
+            ceremonyInfo: infoData,
+            program: progData,
+            graduates: gradsData,
+            messages: msgsData,
+            photos: galleryData,
+            mediaLinks: mediaLinksData
+          });
+        }
+
         case 'ceremony-info': {
           const { data, error } = await withTimeout(
             supabase
@@ -159,7 +201,7 @@ export async function GET(
               .select('*')
               .eq('type', 'ceremony_info')
               .single(),
-            3000
+            1500
           );
 
           if (error || !data) {
@@ -174,7 +216,7 @@ export async function GET(
               .from('program_items')
               .select('*')
               .order('item_order', { ascending: true }),
-            3000
+            1500
           );
 
           if (error) {
@@ -194,7 +236,7 @@ export async function GET(
               .from('graduates')
               .select('*')
               .order('order_number', { ascending: true }),
-            3000
+            1500
           );
 
           if (error) {
@@ -214,7 +256,7 @@ export async function GET(
               .from('messages')
               .select('*')
               .order('created_at', { ascending: false }),
-            3000
+            1500
           );
 
           if (error || !data) {
@@ -230,7 +272,7 @@ export async function GET(
               .from('photos')
               .select('*')
               .order('created_at', { ascending: false }),
-            3000
+            1500
           );
 
           if (error || !data) {
@@ -245,7 +287,7 @@ export async function GET(
             supabase
               .from('media_links')
               .select('*'),
-            3000
+            1500
           );
 
           if (error || !data || data.length === 0) {
@@ -276,6 +318,18 @@ export async function GET(
   }
 
   // Local static files fallback loader
+  if (key === 'all') {
+    return NextResponse.json({
+      journey: readLocalJson('journey.json'),
+      ceremonyInfo: readLocalJson('ceremony-info.json'),
+      program: readLocalJson('program.json'),
+      graduates: readLocalJson('graduates.json'),
+      messages: readLocalJson('messages.json'),
+      photos: readLocalJson('gallery.json'),
+      mediaLinks: readLocalJson('media-links.json')
+    });
+  }
+
   let filename = '';
   switch (key) {
     case 'ceremony-info': filename = 'ceremony-info.json'; break;
