@@ -185,6 +185,7 @@ export async function GET(
           }
 
           return NextResponse.json({
+            _source: 'sql',
             journey: readLocalJson('journey.json'),
             ceremonyInfo: infoData,
             program: progData,
@@ -268,6 +269,49 @@ export async function GET(
   if (isSupabaseConfigured && supabase && checkDbHealth()) {
     try {
       switch (key) {
+        case 'all': {
+          const [info, prog, grads, msgs, pics, links] = await Promise.all([
+            withTimeout(supabase.from('media_links').select('*').eq('type', 'ceremony_info').single(), 1500).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('program_items').select('*').order('item_order', { ascending: true }), 1500).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('graduates').select('*').order('order_number', { ascending: true }), 1500).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('messages').select('*').order('created_at', { ascending: false }), 1500).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('photos').select('*').order('created_at', { ascending: false }), 1500).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('media_links').select('*'), 1500).catch(() => ({ data: null, error: true }))
+          ]);
+
+          if (info.error || prog.error || grads.error || msgs.error || pics.error || links.error) {
+            reportDbFailure();
+          }
+
+          const infoData = info.data ? JSON.parse(info.data.url) : readLocalJson('ceremony-info.json');
+          const progData = prog.data && prog.data.length > 0 ? prog.data.map(mapProgDbToClient) : readLocalJson('program.json');
+          const gradsData = grads.data && grads.data.length > 0 ? grads.data.map(mapGradDbToClient) : readLocalJson('graduates.json');
+          const msgsData = msgs.data ? msgs.data.map(mapMsgDbToClient) : readLocalJson('messages.json');
+          const galleryData = pics.data ? pics.data.map(mapPhotoDbToClient) : readLocalJson('gallery.json');
+
+          let mediaLinksData = readLocalJson('media-links.json');
+          if (links.data && links.data.length > 0) {
+            const linksObj = { officialPhotosUrl: '', recapVideoUrl: '', fullCeremonyUrl: '' };
+            links.data.forEach((item: any) => {
+              if (item.type === 'photos') linksObj.officialPhotosUrl = item.url;
+              if (item.type === 'video_recap') linksObj.recapVideoUrl = item.url;
+              if (item.type === 'video_full') linksObj.fullCeremonyUrl = item.url;
+            });
+            mediaLinksData = linksObj;
+          }
+
+          return NextResponse.json({
+            _source: 'supabase',
+            journey: readLocalJson('journey.json'),
+            ceremonyInfo: infoData,
+            program: progData,
+            graduates: gradsData,
+            messages: msgsData,
+            photos: galleryData,
+            mediaLinks: mediaLinksData
+          });
+        }
+
         case 'ceremony-info': {
           const { data, error } = await withTimeout(
             supabase
@@ -394,6 +438,7 @@ export async function GET(
   // 3. Local static files fallback loader (Runs when both SQL and HTTP fallbacks are suspended/unconfigured)
   if (key === 'all') {
     return NextResponse.json({
+      _source: 'template',
       journey: readLocalJson('journey.json'),
       ceremonyInfo: readLocalJson('ceremony-info.json'),
       program: readLocalJson('program.json'),

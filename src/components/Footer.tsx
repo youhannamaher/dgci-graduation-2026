@@ -6,7 +6,7 @@ import { useData } from '@/context/DataContext';
 import { GraduationCap, MapPin, ExternalLink } from 'lucide-react';
 
 export const Footer = () => {
-  const { ceremonyInfo } = useData();
+  const { ceremonyInfo, dbSource, refreshData } = useData();
 
   return (
     <footer className="w-full bg-[#03070d] border-t border-gold/15 py-8 mt-auto">
@@ -56,7 +56,36 @@ export const Footer = () => {
               Built with <a href="https://youhannamaher.github.io/" target="_blank" rel="noopener noreferrer" className="text-gold/80 hover:text-gold transition-colors font-semibold">Youhanna Maher</a>
             </p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4">
+            {/* Database Health Badge */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gold/20 bg-[#050B14]/90 text-[10px]">
+              {dbSource === 'loading' && (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></span>
+                  <span className="text-yellow-400/90 font-medium">Connecting...</span>
+                </>
+              )}
+              {(dbSource === 'supabase' || dbSource === 'sql') && (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
+                  <span className="text-emerald-400 font-medium">Supabase Connected ({dbSource.toUpperCase()})</span>
+                </>
+              )}
+              {dbSource === 'template' && (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  <span className="text-amber-400 font-medium">Offline Fallback</span>
+                  <button
+                    onClick={() => refreshData()}
+                    className="ml-1 text-gold underline hover:text-white transition-colors"
+                    title="Force Re-sync with Supabase"
+                  >
+                    Sync
+                  </button>
+                </>
+              )}
+            </div>
+
             <a
               href="https://www.instagram.com/dgci2026?igsh=aWdpYmxxMGxhOGRj"
               target="_blank"

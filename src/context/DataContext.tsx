@@ -31,7 +31,9 @@ interface DataContextType {
   journey: JourneyItem[];
   isLoading: boolean;
   isSupabaseMode: boolean;
+  dbSource: 'supabase' | 'sql' | 'template' | 'loading';
   isAdmin: boolean;
+  refreshData: () => Promise<void>;
   
   // Auth actions
   loginAdmin: (password: string) => Promise<boolean>;
@@ -80,6 +82,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [mediaLinks, setMediaLinks] = useState<MediaLinks>(mediaTemplate as MediaLinks);
   const [journey, setJourney] = useState<JourneyItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dbSource, setDbSource] = useState<'supabase' | 'sql' | 'template' | 'loading'>('loading');
   const [isAdmin, setIsAdmin] = useState(false);
 
   // Authenticate admin check
@@ -161,6 +164,52 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMediaLinks(mediaData);
   };
 
+  // Perform background database query to fetch live updates in a single combined request
+  const loadAllDataBackground = async () => {
+    try {
+      const res = await fetch('/api/data/all?t=' + Date.now());
+
+      if (!res.ok) {
+        throw new Error('Unified data API fetch failed');
+      }
+
+      const combined = await res.json();
+      
+      const source = combined._source || 'template';
+      setDbSource(source);
+
+      let journeyData = combined.journey;
+      let infoData = combined.ceremonyInfo;
+      let progData = combined.program;
+      let gradsData = combined.graduates;
+      let msgData = combined.messages;
+      let galleryData = combined.photos;
+      let mediaData = combined.mediaLinks;
+
+      // Update React state directly with live responses!
+      setJourney(journeyData);
+      setCeremonyInfo(infoData);
+      setProgram(progData);
+      setGraduates(gradsData);
+      setMessages(msgData);
+      setPhotos(galleryData);
+      setMediaLinks(mediaData);
+
+      // Cache fresh live database content in local storage
+      if (source === 'supabase' || source === 'sql') {
+        saveLocal('dgci_ceremony_info', infoData);
+        saveLocal('dgci_program', progData);
+        saveLocal('dgci_graduates', gradsData);
+        saveLocal('dgci_messages', msgData);
+        saveLocal('dgci_photos', galleryData);
+        saveLocal('dgci_media_links', mediaData);
+      }
+    } catch (e) {
+      console.warn('Background database sync failed, utilizing offline templates:', e);
+      setDbSource('template');
+    }
+  };
+
   // Main loader (Queries Vercel Server API silently in the background)
   useEffect(() => {
     // 1. Instantly display templates/localStorage overrides to turn off the loading spinner
@@ -168,61 +217,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setJourney(journeyTemplate as JourneyItem[]);
     setIsLoading(false);
 
-    // 2. Perform background database query to fetch live updates in a single combined request
-    const loadAllDataBackground = async () => {
-      try {
-        const res = await fetch('/api/data/all');
-
-        if (!res.ok) {
-          throw new Error('Unified data API fetch failed');
-        }
-
-        const combined = await res.json();
-        
-        let journeyData = combined.journey;
-        let infoData = combined.ceremonyInfo;
-        let progData = combined.program;
-        let gradsData = combined.graduates;
-        let msgData = combined.messages;
-        let galleryData = combined.photos;
-        let mediaData = combined.mediaLinks;
-
-        // If local overrides exist, apply them
-        if (typeof window !== 'undefined') {
-          const localInfo = localStorage.getItem('dgci_ceremony_info');
-          if (localInfo) infoData = JSON.parse(localInfo);
-
-          const localProg = localStorage.getItem('dgci_program');
-          if (localProg) progData = JSON.parse(localProg);
-
-          const localGrads = localStorage.getItem('dgci_graduates');
-          if (localGrads) gradsData = JSON.parse(localGrads);
-
-          const localMsg = localStorage.getItem('dgci_messages');
-          if (localMsg) msgData = JSON.parse(localMsg);
-
-          const localPhotos = localStorage.getItem('dgci_photos');
-          if (localPhotos) galleryData = JSON.parse(localPhotos);
-
-          const localMedia = localStorage.getItem('dgci_media_links');
-          if (localMedia) mediaData = JSON.parse(localMedia);
-        }
-
-        // Silent state update
-        setJourney(journeyData);
-        setCeremonyInfo(infoData);
-        setProgram(progData);
-        setGraduates(gradsData);
-        setMessages(msgData);
-        setPhotos(galleryData);
-        setMediaLinks(mediaData);
-      } catch (e) {
-        console.warn('Background database sync failed, utilizing offline templates:', e);
-      }
-    };
-
+    // 2. Fetch live updates
     loadAllDataBackground();
   }, []);
+
+  const refreshData = async () => {
+    setDbSource('loading');
+    await loadAllDataBackground();
+  };
 
   // --- WRITE ACTIONS (Routed through Vercel API proxy) ---
 
@@ -684,7 +686,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         journey,
         isLoading,
         isSupabaseMode: isSupabaseConfigured,
+        dbSource,
         isAdmin,
+        refreshData,
         loginAdmin,
         logoutAdmin,
         updateCeremonyInfo,
