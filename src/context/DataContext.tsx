@@ -58,12 +58,14 @@ interface DataContextType {
   // Message actions
   submitMessage: (msg: Omit<Message, 'id' | 'status' | 'createdAt'>) => Promise<boolean>;
   approveMessage: (id: string) => Promise<boolean>;
+  approveAllMessages: () => Promise<boolean>;
   rejectMessage: (id: string) => Promise<boolean>;
   deleteMessage: (id: string) => Promise<boolean>;
 
   // Photo actions
   submitPhoto: (photo: Omit<Photo, 'id' | 'status' | 'createdAt'>) => Promise<boolean>;
   approvePhoto: (id: string) => Promise<boolean>;
+  approveAllPhotos: () => Promise<boolean>;
   rejectPhoto: (id: string) => Promise<boolean>;
   deletePhoto: (id: string) => Promise<boolean>;
 
@@ -558,6 +560,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const approveAllMessages = async (): Promise<boolean> => {
+    const updated = messages.map(m => ({ ...m, status: 'approved' as const }));
+    setMessages(updated);
+
+    try {
+      const res = await fetch('/api/data/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve_all' })
+      });
+      const result = await res.json();
+      if (result.localOnly) {
+        saveLocal('dgci_messages', updated);
+      }
+      return result.success;
+    } catch (e) {
+      console.error(e);
+      saveLocal('dgci_messages', updated);
+      return true;
+    }
+  };
+
   // 5. Photo Actions
   const submitPhoto = async (photo: Omit<Photo, 'id' | 'status' | 'createdAt'>): Promise<boolean> => {
     const newPhoto: Photo = {
@@ -596,6 +620,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve', id })
+      });
+      const result = await res.json();
+      if (result.localOnly) {
+        saveLocal('dgci_photos', updated);
+      }
+      return result.success;
+    } catch (e) {
+      console.error(e);
+      saveLocal('dgci_photos', updated);
+      return true;
+    }
+  };
+
+  const approveAllPhotos = async (): Promise<boolean> => {
+    const updated = photos.map(p => ({ ...p, status: 'approved' as const }));
+    setPhotos(updated);
+
+    try {
+      const res = await fetch('/api/data/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve_all' })
       });
       const result = await res.json();
       if (result.localOnly) {
@@ -703,10 +749,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         reorderGraduates,
         submitMessage,
         approveMessage,
+        approveAllMessages,
         rejectMessage,
         deleteMessage,
         submitPhoto,
         approvePhoto,
+        approveAllPhotos,
         rejectPhoto,
         deletePhoto,
         updateMediaLinks

@@ -10,7 +10,7 @@ export default function MediaHubPage() {
   // Form State
   const [caption, setCaption] = useState('');
   const [uploadedBy, setUploadedBy] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Status State
@@ -69,66 +69,62 @@ export default function MediaHubPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    // Check size limit: 5MB
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage('Image must be smaller than 5 MB.');
+    // Check size limit: 5MB per file
+    const oversized = files.find(f => f.size > 5 * 1024 * 1024);
+    if (oversized) {
+      setErrorMessage('Each image must be smaller than 5 MB.');
       setUploadStatus('error');
       return;
     }
 
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
+    setSelectedFiles(files);
+    setPreviewUrl(URL.createObjectURL(files[0]));
     setUploadStatus('idle');
     setErrorMessage('');
   };
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFile) return;
-
-    if (uploadCount >= 5) {
-      setErrorMessage('You have reached the upload limit of 5 photos per session.');
-      setUploadStatus('error');
-      return;
-    }
+    if (selectedFiles.length === 0) return;
 
     try {
-      setUploadStatus('compressing');
-      
-      // Compress client-side
-      const base64Image = await compressImage(selectedFile);
-      
       setUploadStatus('uploading');
 
-      // Submit photo data
-      const success = await submitPhoto({
-        url: base64Image, // Save compressed base64 string as URL
-        caption: caption.trim(),
-        uploadedBy: uploadedBy.trim() || 'Anonymous'
-      });
+      let successCount = 0;
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const base64Image = await compressImage(file);
 
-      if (success) {
+        const ok = await submitPhoto({
+          url: base64Image,
+          caption: caption.trim() || (selectedFiles.length > 1 ? `Memory #${i + 1}` : ''),
+          uploadedBy: uploadedBy.trim() || 'Anonymous'
+        });
+
+        if (ok) successCount++;
+      }
+
+      if (successCount > 0) {
         setUploadStatus('success');
         setCaption('');
-        setSelectedFile(null);
+        setSelectedFiles([]);
         setPreviewUrl(null);
-        setUploadCount((prev) => prev + 1);
+        setUploadCount((prev) => prev + successCount);
 
-        // Reset
         setTimeout(() => {
           setUploadStatus('idle');
         }, 5000);
       } else {
         setUploadStatus('error');
-        setErrorMessage('Failed to upload. Please try again.');
+        setErrorMessage('Failed to upload photos. Please try again.');
       }
     } catch (err) {
       console.error(err);
       setUploadStatus('error');
-      setErrorMessage('Compression failed. Please choose another image.');
+      setErrorMessage('Upload processing failed. Please choose another image.');
     }
   };
 
@@ -140,56 +136,74 @@ export default function MediaHubPage() {
     return match && match[2].length === 11 ? `https://www.youtube.com/embed/${match[2]}` : '';
   };
 
-  const recapEmbed = getYoutubeEmbedUrl(mediaLinks.recapVideoUrl);
-  const fullEmbed = getYoutubeEmbedUrl(mediaLinks.fullCeremonyUrl);
+  const recapEmbed = useMemo(() => getYoutubeEmbedUrl(mediaLinks.recapVideoUrl), [mediaLinks.recapVideoUrl]);
+  const fullEmbed = useMemo(() => getYoutubeEmbedUrl(mediaLinks.fullCeremonyUrl), [mediaLinks.fullCeremonyUrl]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 w-full animate-fadeIn space-y-12">
-      {/* Page Header */}
+    <div className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full space-y-10">
+      {/* Title */}
       <div className="text-center">
-        <h1 className="text-2xl md:text-3xl font-serif font-extrabold text-gold-light tracking-wide mb-2">
+        <div className="inline-flex items-center justify-center p-2.5 rounded-full bg-gold/10 border border-gold/30 mb-3 text-gold">
+          <Camera className="h-6 w-6" />
+        </div>
+        <h1 className="text-2xl md:text-3xl font-serif font-extrabold text-gold-light tracking-wide mb-1">
           Photo & Video Hub
         </h1>
-        <p className="text-gray-400 text-xs max-w-sm mx-auto leading-relaxed">
-          Access official photos, watch ceremony recordings, and upload your snapshots of the big day.
+        <p className="text-gray-400 text-xs max-w-md mx-auto leading-relaxed">
+          Upload your personal ceremony photos or download official media recordings.
         </p>
       </div>
 
-      {/* Grid: Section 1 & Section 2 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        
-        {/* Guest Photo Upload Box */}
+      {/* Grid: Upload & Official Albums */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Upload Form Box */}
         <div className="glass-card rounded-2xl p-6 border-gold/20 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Camera className="h-5 w-5 text-gold" />
-              <h2 className="text-base font-serif font-bold text-gold-light">Guest Photo Upload</h2>
+              <Upload className="h-5 w-5 text-gold" />
+              <h2 className="text-base font-serif font-bold text-gold-light">Share Your Ceremony Photos</h2>
             </div>
             <p className="text-gray-400 text-xs mb-4 leading-relaxed font-sans">
-              Share your moments from the crowd! Upload photos here. (Max 5 photos, max 5MB each). They will be added to the pending queue for admin review.
+              Select one or multiple photos from your phone or camera to feature in our graduate class memory album.
             </p>
 
-            <form onSubmit={handleUploadSubmit} className="space-y-4">
-              {/* File Input container */}
-              <div className="border border-dashed border-gold/35 rounded-xl p-4 text-center cursor-pointer hover:bg-gold/5 transition-all relative">
+            {uploadStatus === 'success' && (
+              <div className="mb-4 p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <span>Uploaded successfully! Pending quick admin review.</span>
+              </div>
+            )}
+
+            {uploadStatus === 'error' && (
+              <div className="mb-4 p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUploadSubmit} className="space-y-4 font-sans">
+              {/* Dropzone */}
+              <div className="border-2 border-dashed border-gold/25 hover:border-gold/60 rounded-xl p-4 text-center cursor-pointer transition-all bg-[#03070d]/50 relative">
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handleFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  disabled={uploadCount >= 5}
                 />
                 
                 {previewUrl ? (
                   <div className="flex flex-col items-center">
                     <img src={previewUrl} alt="Preview" className="h-28 object-contain rounded-lg border border-gold/20 mb-2" />
-                    <span className="text-[10px] text-gold font-medium">Click to replace photo</span>
+                    <span className="text-[10px] text-gold font-medium">
+                      {selectedFiles.length > 1 ? `${selectedFiles.length} photos selected (click to replace)` : 'Click to replace photo'}
+                    </span>
                   </div>
                 ) : (
                   <div className="py-4 flex flex-col items-center">
                     <Upload className="h-8 w-8 text-gold/60 mb-2" />
-                    <span className="text-xs text-gray-300 font-semibold">Select Photo from Library or Camera</span>
-                    <span className="text-[9px] text-gray-500 mt-1">PNG, JPG up to 5MB</span>
+                    <span className="text-xs text-gray-300 font-semibold">Select Photos from Library or Camera</span>
+                    <span className="text-[9px] text-gray-500 mt-1">Select one or multiple photos (up to 5MB each)</span>
                   </div>
                 )}
               </div>
@@ -205,7 +219,6 @@ export default function MediaHubPage() {
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   className="block w-full bg-[#03070d]/70 border border-gold/25 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-gold"
-                  disabled={uploadCount >= 5}
                 />
               </div>
 
@@ -220,38 +233,21 @@ export default function MediaHubPage() {
                   value={uploadedBy}
                   onChange={(e) => setUploadedBy(e.target.value)}
                   className="block w-full bg-[#03070d]/70 border border-gold/25 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-gold"
-                  disabled={uploadCount >= 5}
                 />
               </div>
-
-              {/* Error / Success feedback */}
-              {uploadStatus === 'success' && (
-                <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Photo uploaded successfully for review! ({uploadCount}/5)</span>
-                </div>
-              )}
-              {uploadStatus === 'error' && (
-                <div className="p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl text-rose-400 text-xs flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
 
               {/* Submit */}
               <button
                 type="submit"
-                disabled={!selectedFile || uploadStatus === 'compressing' || uploadStatus === 'uploading' || uploadCount >= 5}
-                className="w-full bg-gold-gradient text-navy-dark py-2 rounded-xl text-xs font-bold tracking-wider hover:bg-gold-gradient-hover transition-all disabled:opacity-40"
+                disabled={selectedFiles.length === 0 || uploadStatus === 'uploading'}
+                className="w-full bg-gold-gradient text-navy-dark py-2.5 rounded-xl font-bold text-xs hover:bg-gold-gradient-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(212,175,55,0.2)]"
               >
-                {uploadStatus === 'compressing' && 'Compressing Image...'}
-                {uploadStatus === 'uploading' && 'Uploading...'}
-                {uploadStatus !== 'compressing' && uploadStatus !== 'uploading' && 'Upload Photo'}
+                {uploadStatus === 'uploading' ? 'Uploading Selected Photos...' : selectedFiles.length > 1 ? `Upload ${selectedFiles.length} Photos` : 'Upload Photo'}
               </button>
             </form>
           </div>
           <div className="text-right text-[9px] text-gray-500 mt-2">
-            Uploaded: {uploadCount} / 5 photos this session
+            Uploaded: {uploadCount} photos this session
           </div>
         </div>
 
@@ -329,14 +325,14 @@ export default function MediaHubPage() {
             )}
           </div>
 
-          {/* Full Ceremony Video Box */}
+          {/* DGCI 2026 Video Box */}
           <div className="glass-card rounded-2xl p-5 border border-gold/15">
-            <h3 className="text-xs uppercase tracking-wider text-gold-light font-semibold mb-3">Full Ceremony Recording</h3>
+            <h3 className="text-xs uppercase tracking-wider text-gold-light font-semibold mb-3">DGCI 2026 Video</h3>
             {fullEmbed ? (
               <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-gold/10">
                 <iframe
                   src={fullEmbed}
-                  title="Full Ceremony Video"
+                  title="DGCI 2026 Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="absolute inset-0 w-full h-full"
@@ -345,7 +341,7 @@ export default function MediaHubPage() {
             ) : (
               <div className="bg-[#03070d]/30 aspect-video rounded-xl border border-gold/10 flex flex-col items-center justify-center text-center p-4">
                 <Play className="h-8 w-8 text-gold/30 mb-2" />
-                <p className="text-[10px] text-gray-500 italic">&ldquo;Full ceremony recording coming soon&rdquo;</p>
+                <p className="text-[10px] text-gray-500 italic">&ldquo;DGCI 2026 video coming soon&rdquo;</p>
               </div>
             )}
           </div>

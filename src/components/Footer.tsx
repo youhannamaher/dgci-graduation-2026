@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useData } from '@/context/DataContext';
-import { GraduationCap, MapPin, ExternalLink } from 'lucide-react';
+import { GraduationCap, MapPin, ExternalLink, MessageCircle } from 'lucide-react';
 
 export const Footer = () => {
   const { ceremonyInfo, dbSource, refreshData } = useData();
@@ -86,6 +86,15 @@ export const Footer = () => {
               )}
             </div>
 
+            <a
+              href={ceremonyInfo.whatsappNumber ? `https://wa.me/${ceremonyInfo.whatsappNumber.replace(/[^0-9]/g, '')}` : "https://wa.me/"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition-colors font-semibold"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              WhatsApp
+            </a>
             <a
               href="https://www.instagram.com/dgci2026?igsh=aWdpYmxxMGxhOGRj"
               target="_blank"

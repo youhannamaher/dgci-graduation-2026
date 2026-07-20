@@ -99,16 +99,7 @@ export default function GraduateProfilePage({ params }: ProfileParams) {
           Known as &ldquo;{graduate.displayName}&rdquo;
         </p>
 
-        {/* Personal Quote */}
-        {graduate.quote && (
-          <div className="max-w-md mx-auto my-6 px-6 relative py-4 bg-[#03070d]/40 rounded-xl border border-gold/10">
-            <Quote className="h-5 w-5 text-gold/30 absolute top-2 left-2" />
-            <p className="font-serif italic text-sm text-gold-light/90 leading-relaxed pt-2">
-              {graduate.quote}
-            </p>
-            <Quote className="h-5 w-5 text-gold/30 absolute bottom-2 right-2 transform rotate-180" />
-          </div>
-        )}
+
 
         {/* Social Links & Action Button */}
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 border-t border-gold/10 pt-6">

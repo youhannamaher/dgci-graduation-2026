@@ -7,6 +7,7 @@ export interface CeremonyInfo {
   locationUrl: string;
   subtitle: string;
   closingMessage: string;
+  whatsappNumber?: string;
 }
 
 export interface ProgramItem {

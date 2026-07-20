@@ -588,6 +588,10 @@ export async function POST(
             await sql`UPDATE messages SET status = 'approved' WHERE id = ${id}`;
             return NextResponse.json({ success: true });
           }
+          if (action === 'approve_all') {
+            await sql`UPDATE messages SET status = 'approved' WHERE status = 'pending'`;
+            return NextResponse.json({ success: true });
+          }
           if (action === 'reject') {
             await sql`UPDATE messages SET status = 'rejected' WHERE id = ${id}`;
             return NextResponse.json({ success: true });
@@ -611,6 +615,10 @@ export async function POST(
             await sql`UPDATE photos SET status = 'approved' WHERE id = ${id}`;
             return NextResponse.json({ success: true });
           }
+          if (action === 'approve_all') {
+            await sql`UPDATE photos SET status = 'approved' WHERE status = 'pending'`;
+            return NextResponse.json({ success: true });
+          }
           if (action === 'reject' || action === 'delete') {
             await sql`DELETE FROM photos WHERE id = ${id}`;
             return NextResponse.json({ success: true });
@@ -631,7 +639,7 @@ export async function POST(
           `;
           await sql`
             INSERT INTO media_links (id, title, type, url, is_active)
-            VALUES ('video_full', 'Full Ceremony Video', 'video_full', ${data.fullCeremonyUrl}, true)
+            VALUES ('video_full', 'DGCI 2026 Video', 'video_full', ${data.fullCeremonyUrl}, true)
             ON CONFLICT (id) DO UPDATE SET url = EXCLUDED.url
           `;
           return NextResponse.json({ success: true });
@@ -727,6 +735,10 @@ export async function POST(
           const { error } = await supabase.from('messages').update({ status: 'approved' }).eq('id', id);
           return NextResponse.json({ success: !error, error });
         }
+        if (action === 'approve_all') {
+          const { error } = await supabase.from('messages').update({ status: 'approved' }).eq('status', 'pending');
+          return NextResponse.json({ success: !error, error });
+        }
         if (action === 'reject') {
           const { error } = await supabase.from('messages').update({ status: 'rejected' }).eq('id', id);
           return NextResponse.json({ success: !error, error });
@@ -747,6 +759,10 @@ export async function POST(
           const { error } = await supabase.from('photos').update({ status: 'approved' }).eq('id', id);
           return NextResponse.json({ success: !error, error });
         }
+        if (action === 'approve_all') {
+          const { error } = await supabase.from('photos').update({ status: 'approved' }).eq('status', 'pending');
+          return NextResponse.json({ success: !error, error });
+        }
         if (action === 'reject' || action === 'delete') {
           const { error } = await supabase.from('photos').delete().eq('id', id);
           return NextResponse.json({ success: !error, error });
@@ -757,7 +773,7 @@ export async function POST(
       case 'media-links': {
         await supabase.from('media_links').upsert({ id: 'photos', title: 'Official Photos', type: 'photos', url: data.officialPhotosUrl, is_active: true });
         await supabase.from('media_links').upsert({ id: 'video_recap', title: 'Recap Video', type: 'video_recap', url: data.recapVideoUrl, is_active: true });
-        await supabase.from('media_links').upsert({ id: 'video_full', title: 'Full Ceremony Video', type: 'video_full', url: data.fullCeremonyUrl, is_active: true });
+        await supabase.from('media_links').upsert({ id: 'video_full', title: 'DGCI 2026 Video', type: 'video_full', url: data.fullCeremonyUrl, is_active: true });
         return NextResponse.json({ success: true });
       }
 

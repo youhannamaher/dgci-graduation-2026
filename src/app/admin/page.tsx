@@ -5,7 +5,7 @@ import { useData } from '@/context/DataContext';
 import { StudentAvatar } from '@/components/StudentAvatar';
 import {
   Lock, KeyRound, LogOut, LayoutDashboard, Settings, Calendar, Users, MessageSquare, Camera, Link as LinkIcon,
-  Plus, Edit, Trash2, Check, X, FileSpreadsheet, Download, Upload, AlertCircle, AlertTriangle, Eye, EyeOff
+  Plus, Edit, Trash2, Check, CheckCircle, X, FileSpreadsheet, Download, Upload, AlertCircle, AlertTriangle, Eye, EyeOff
 } from 'lucide-react';
 import { Graduate, ProgramItem, Message, Photo } from '@/lib/types';
 
@@ -14,8 +14,8 @@ export default function AdminPage() {
     ceremonyInfo, program, graduates, messages, photos, mediaLinks, isLoading, isAdmin,
     loginAdmin, logoutAdmin, updateCeremonyInfo, addProgramItem, updateProgramItem,
     deleteProgramItem, reorderProgram, addGraduate, updateGraduate, deleteGraduate,
-    importGraduatesCsv, reorderGraduates, approveMessage, rejectMessage, deleteMessage,
-    approvePhoto, rejectPhoto, deletePhoto, updateMediaLinks
+    importGraduatesCsv, reorderGraduates, approveMessage, approveAllMessages, rejectMessage, deleteMessage,
+    approvePhoto, approveAllPhotos, rejectPhoto, deletePhoto, updateMediaLinks
   } = useData();
 
   // Authentication state
@@ -101,9 +101,10 @@ export default function AdminPage() {
     const locationUrl = formData.get('locationUrl') as string;
     const subtitle = formData.get('subtitle') as string;
     const closingMessage = formData.get('closingMessage') as string;
+    const whatsappNumber = formData.get('whatsappNumber') as string;
 
     const success = await updateCeremonyInfo({
-      title, classYear, date, time, venue, locationUrl, subtitle, closingMessage
+      title, classYear, date, time, venue, locationUrl, subtitle, closingMessage, whatsappNumber
     });
     if (success) triggerSaveNotification();
   };
@@ -730,6 +731,17 @@ export default function AdminPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-gray-400 mb-1">WhatsApp Contact Phone Number (e.g. +201234567890)</label>
+                  <input
+                    type="text"
+                    name="whatsappNumber"
+                    defaultValue={ceremonyInfo.whatsappNumber || ''}
+                    placeholder="+201234567890"
+                    className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
+                  />
+                </div>
+
                 <button
                   type="submit"
                   className="bg-gold-gradient text-navy-dark px-4 py-2 rounded-lg font-bold hover:bg-gold-gradient-hover transition-all"
@@ -1008,16 +1020,7 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-gray-400 mb-1">Profile Quote / Memory</label>
-                      <textarea
-                        placeholder="Proud to graduate, class of 2026!"
-                        value={gradQuote}
-                        onChange={(e) => setGradQuote(e.target.value)}
-                        className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
-                        rows={2}
-                      />
-                    </div>
+
 
                     <div className="flex gap-2">
                       <button
@@ -1114,12 +1117,27 @@ export default function AdminPage() {
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <h3 className="font-serif font-bold text-sm text-gold-light">Message Moderation</h3>
-                <button
-                  onClick={handleExportMessagesCSV}
-                  className="bg-[#03070d] text-gold border border-gold/30 text-xs px-3 py-1.5 rounded-lg hover:border-gold transition-all inline-flex items-center gap-1"
-                >
-                  <Download className="h-3.5 w-3.5" /> Export Messages
-                </button>
+                <div className="flex gap-2">
+                  {stats.pendingMsg > 0 && (
+                    <button
+                      onClick={async () => {
+                        if (confirm(`Approve all ${stats.pendingMsg} pending messages?`)) {
+                          await approveAllMessages();
+                          triggerSaveNotification();
+                        }
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold inline-flex items-center gap-1 transition-all shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                    >
+                      <CheckCircle className="h-3.5 w-3.5" /> Approve All ({stats.pendingMsg})
+                    </button>
+                  )}
+                  <button
+                    onClick={handleExportMessagesCSV}
+                    className="bg-[#03070d] text-gold border border-gold/30 text-xs px-3 py-1.5 rounded-lg hover:border-gold transition-all inline-flex items-center gap-1"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Export Messages
+                  </button>
+                </div>
               </div>
 
               {/* Filter controls */}
@@ -1222,7 +1240,22 @@ export default function AdminPage() {
             <div className="space-y-6">
               {/* Pending Queue */}
               <div>
-                <h3 className="font-serif font-bold text-sm text-gold-light mb-4">Pending Guest Uploads ({pendingPhotos.length})</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-serif font-bold text-sm text-gold-light">Pending Guest Uploads ({pendingPhotos.length})</h3>
+                  {pendingPhotos.length > 0 && (
+                    <button
+                      onClick={async () => {
+                        if (confirm(`Approve all ${pendingPhotos.length} pending photos?`)) {
+                          await approveAllPhotos();
+                          triggerSaveNotification();
+                        }
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold inline-flex items-center gap-1 transition-all shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                    >
+                      <CheckCircle className="h-3.5 w-3.5" /> Approve All Photos ({pendingPhotos.length})
+                    </button>
+                  )}
+                </div>
                 {pendingPhotos.length === 0 ? (
                   <div className="glass-card rounded-xl p-6 text-center border-gold/10 text-gray-500 text-xs">
                     <p>No guest photo uploads pending approval.</p>
@@ -1320,7 +1353,7 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 mb-1">Full Ceremony Recording URL (YouTube)</label>
+                  <label className="block text-gray-400 mb-1">DGCI 2026 Video URL (YouTube)</label>
                   <input
                     type="url"
                     name="fullCeremonyUrl"

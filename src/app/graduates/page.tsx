@@ -59,7 +59,7 @@ export default function GraduatesPage() {
           Graduate Profiles
         </h1>
         <p className="text-gray-400 text-xs max-w-md mx-auto leading-relaxed">
-          Browse the graduating class of 2026. Click on a profile to read their quotes, memories, and approved congratulations messages.
+          Browse the graduating class of 2026. Click on a profile to view stage walk details and approved congratulations messages.
         </p>
       </div>
 
