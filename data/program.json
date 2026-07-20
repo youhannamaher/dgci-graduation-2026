@@ -1,0 +1,50 @@
+[
+  {
+    "id": "prog-1",
+    "order": 1,
+    "time": "6:00 PM",
+    "title": "Guest Arrival & Seating",
+    "description": "Guests are welcomed and guided to their seats.",
+    "isCurrent": true
+  },
+  {
+    "id": "prog-2",
+    "order": 2,
+    "time": "6:30 PM",
+    "title": "Opening Ceremony",
+    "description": "Official opening of the DGCI Graduation Ceremony.",
+    "isCurrent": false
+  },
+  {
+    "id": "prog-3",
+    "order": 3,
+    "time": "6:45 PM",
+    "title": "Official Speeches",
+    "description": "Speeches from university representatives and guests.",
+    "isCurrent": false
+  },
+  {
+    "id": "prog-4",
+    "order": 4,
+    "time": "7:30 PM",
+    "title": "Certificate Distribution",
+    "description": "Graduates receive their certificates in official order.",
+    "isCurrent": false
+  },
+  {
+    "id": "prog-5",
+    "order": 5,
+    "time": "9:00 PM",
+    "title": "Group Photos",
+    "description": "Official group and class photos.",
+    "isCurrent": false
+  },
+  {
+    "id": "prog-6",
+    "order": 6,
+    "time": "9:30 PM",
+    "title": "Celebration Moment",
+    "description": "Closing celebration and memories.",
+    "isCurrent": false
+  }
+]

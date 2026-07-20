@@ -1,0 +1,26 @@
+[
+  {
+    "id": "photo-1",
+    "url": "/gallery/sample-001.jpg",
+    "caption": "Throwback to our first day of class!",
+    "uploadedBy": "Mariam",
+    "status": "approved",
+    "createdAt": "2026-07-20T20:00:00Z"
+  },
+  {
+    "id": "photo-2",
+    "url": "/gallery/sample-002.jpg",
+    "caption": "Late nights in the lab - final project done!",
+    "uploadedBy": "Youhanna",
+    "status": "approved",
+    "createdAt": "2026-07-20T20:05:00Z"
+  },
+  {
+    "id": "photo-3",
+    "url": "/gallery/sample-003.jpg",
+    "caption": "Class memories from 2025",
+    "uploadedBy": "Omar",
+    "status": "pending",
+    "createdAt": "2026-07-20T20:10:00Z"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "year": "2022",
+    "title": "Beginning of the DGCI Journey",
+    "description": "We started our academic journey, meeting classmates and embarking on new challenges.",
+    "isComingSoon": false
+  },
+  {
+    "year": "2023",
+    "title": "Memories & Milestones",
+    "description": "Deepening our knowledge, working on group projects, and building solid friendships.",
+    "isComingSoon": false
+  },
+  {
+    "year": "2024",
+    "title": "Internships & Projects",
+    "description": "Taking our skills out to the industry and getting a taste of real-world software engineering.",
+    "isComingSoon": false
+  },
+  {
+    "year": "2025",
+    "title": "The Final Year",
+    "description": "Embarking on graduation projects, tackling advanced topics, and preparing for professional life.",
+    "isComingSoon": false
+  },
+  {
+    "year": "2026",
+    "title": "Graduation Day",
+    "description": "Celebrating our graduation. Class of 2026, we made it!",
+    "isComingSoon": false
+  }
+]

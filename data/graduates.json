@@ -1,0 +1,222 @@
+[
+  {
+    "id": "youhanna-maher",
+    "order": 1,
+    "fullName": "Youhanna Maher",
+    "displayName": "Youhanna",
+    "photo": "/graduates/youhanna-maher.jpg",
+    "quote": "Proud DGCI graduate, Class of 2026.",
+    "linkedin": "https://linkedin.com",
+    "instagram": "https://instagram.com",
+    "showProfile": true
+  },
+  {
+    "id": "mariam-hassan",
+    "order": 2,
+    "fullName": "Mariam Hassan",
+    "displayName": "Mariam",
+    "photo": "/graduates/student-002.jpg",
+    "quote": "The future belongs to those who believe in the beauty of their dreams.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "david-george",
+    "order": 3,
+    "fullName": "David George",
+    "displayName": "David",
+    "photo": "/graduates/student-003.jpg",
+    "quote": "Here's to the late nights, the early mornings, and the memories.",
+    "linkedin": "https://linkedin.com",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "nour-elsherif",
+    "order": 4,
+    "fullName": "Nour Elsherif",
+    "displayName": "Nour",
+    "photo": "/graduates/student-004.jpg",
+    "quote": "Grateful for the journey, excited for what lies ahead.",
+    "linkedin": "",
+    "instagram": "https://instagram.com",
+    "showProfile": true
+  },
+  {
+    "id": "andrew-monir",
+    "order": 5,
+    "fullName": "Andrew Monir",
+    "displayName": "Andrew",
+    "photo": "/graduates/student-005.jpg",
+    "quote": "We did it! Class of 2026.",
+    "linkedin": "https://linkedin.com",
+    "instagram": "https://instagram.com",
+    "showProfile": true
+  },
+  {
+    "id": "farida-ahmed",
+    "order": 6,
+    "fullName": "Farida Ahmed",
+    "displayName": "Farida",
+    "photo": "/graduates/student-006.jpg",
+    "quote": "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "youssef-hany",
+    "order": 7,
+    "fullName": "Youssef Hany",
+    "displayName": "Youssef",
+    "photo": "/graduates/student-007.jpg",
+    "quote": "On to the next chapter of this beautiful life.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "sara-ibrahim",
+    "order": 8,
+    "fullName": "Sara Ibrahim",
+    "displayName": "Sara",
+    "photo": "/graduates/student-008.jpg",
+    "quote": "Strive not to be a success, but rather to be of value.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "michael-adel",
+    "order": 9,
+    "fullName": "Michael Adel",
+    "displayName": "Michael",
+    "photo": "/graduates/student-009.jpg",
+    "quote": "We are just getting started.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "habiba-ali",
+    "order": 10,
+    "fullName": "Habiba Ali",
+    "displayName": "Habiba",
+    "photo": "/graduates/student-010.jpg",
+    "quote": "Grateful for the professors, family, and friends who made this possible.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "peter-nagy",
+    "order": 11,
+    "fullName": "Peter Nagy",
+    "displayName": "Peter",
+    "photo": "/graduates/student-011.jpg",
+    "quote": "Keep moving forward, one step at a time.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "jessica-wael",
+    "order": 12,
+    "fullName": "Jessica Wael",
+    "displayName": "Jessica",
+    "photo": "/graduates/student-012.jpg",
+    "quote": "Dream big, work hard, stay focused.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "marwan-hisham",
+    "order": 13,
+    "fullName": "Marwan Hisham",
+    "displayName": "Marwan",
+    "photo": "/graduates/student-013.jpg",
+    "quote": "This is only the beginning of something great.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "malak-tarek",
+    "order": 14,
+    "fullName": "Malak Tarek",
+    "displayName": "Malak",
+    "photo": "/graduates/student-014.jpg",
+    "quote": "Live the life you have imagined.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "sherif-ashraf",
+    "order": 15,
+    "fullName": "Sherif Ashraf",
+    "displayName": "Sherif",
+    "photo": "/graduates/student-015.jpg",
+    "quote": "Proud to stand among the DGCI graduates.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "nadeen-amr",
+    "order": 16,
+    "fullName": "Nadeen Amr",
+    "displayName": "Nadeen",
+    "photo": "/graduates/student-016.jpg",
+    "quote": "It always seems impossible until it's done.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "tarek-ramzy",
+    "order": 17,
+    "fullName": "Tarek Ramzy",
+    "displayName": "Tarek",
+    "photo": "/graduates/student-017.jpg",
+    "quote": "Endings are just new beginnings in disguise.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "salma-khalid",
+    "order": 18,
+    "fullName": "Salma Khalid",
+    "displayName": "Salma",
+    "photo": "/graduates/student-018.jpg",
+    "quote": "Grateful for the memories and the lifelong friendships.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "omar-moustafa",
+    "order": 19,
+    "fullName": "Omar Moustafa",
+    "displayName": "Omar",
+    "photo": "/graduates/student-019.jpg",
+    "quote": "Believe you can and you're halfway there.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  },
+  {
+    "id": "nouran-walid",
+    "order": 20,
+    "fullName": "Nouran Walid",
+    "displayName": "Nouran",
+    "photo": "/graduates/student-020.jpg",
+    "quote": "The journey of a thousand miles begins with a single step.",
+    "linkedin": "",
+    "instagram": "",
+    "showProfile": true
+  }
+]

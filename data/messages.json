@@ -1,0 +1,46 @@
+[
+  {
+    "id": "msg-1",
+    "message": "Congratulations to the class of 2026! We made it through the late nights!",
+    "senderName": "Mariam Hassan",
+    "isAnonymous": false,
+    "targetType": "class",
+    "targetGraduateIds": [],
+    "relation": "Graduate",
+    "status": "approved",
+    "createdAt": "2026-07-20T19:00:00Z"
+  },
+  {
+    "id": "msg-2",
+    "message": "So proud of you, Youhanna! You worked so hard for this moment.",
+    "senderName": "Proud Family",
+    "isAnonymous": false,
+    "targetType": "graduate",
+    "targetGraduateIds": ["youhanna-maher"],
+    "relation": "Family",
+    "status": "approved",
+    "createdAt": "2026-07-20T19:30:00Z"
+  },
+  {
+    "id": "msg-3",
+    "message": "To all my friends in DGCI, it has been an absolute honor studying with you.",
+    "senderName": "Anonymous",
+    "isAnonymous": true,
+    "targetType": "class",
+    "targetGraduateIds": [],
+    "relation": "Graduate",
+    "status": "approved",
+    "createdAt": "2026-07-20T19:45:00Z"
+  },
+  {
+    "id": "msg-4",
+    "message": "A word of advice: never stop learning. Congratulations!",
+    "senderName": "Dr. Ahmed",
+    "isAnonymous": false,
+    "targetType": "class",
+    "targetGraduateIds": [],
+    "relation": "Professor",
+    "status": "pending",
+    "createdAt": "2026-07-20T20:15:00Z"
+  }
+]
