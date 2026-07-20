@@ -146,7 +146,19 @@ export async function GET(
             .select('*')
             .order('item_order', { ascending: true });
 
-          if (error || !data || data.length === 0) {
+          if (error) {
+            console.error('Supabase program fetch error:', error);
+            return NextResponse.json({
+              _debugError: error,
+              _debugConfig: {
+                hasUrl: !!supabaseUrl,
+                hasAnon: !!supabaseAnonKey,
+                hasService: !!supabaseServiceKey,
+                urlValue: supabaseUrl
+              }
+            }, { status: 500 });
+          }
+          if (!data || data.length === 0) {
             return NextResponse.json(readLocalJson('program.json'));
           }
           return NextResponse.json(data.map(mapProgDbToClient));
@@ -158,7 +170,19 @@ export async function GET(
             .select('*')
             .order('order_number', { ascending: true });
 
-          if (error || !data || data.length === 0) {
+          if (error) {
+            console.error('Supabase graduates fetch error:', error);
+            return NextResponse.json({
+              _debugError: error,
+              _debugConfig: {
+                hasUrl: !!supabaseUrl,
+                hasAnon: !!supabaseAnonKey,
+                hasService: !!supabaseServiceKey,
+                urlValue: supabaseUrl
+              }
+            }, { status: 500 });
+          }
+          if (!data || data.length === 0) {
             return NextResponse.json(readLocalJson('graduates.json'));
           }
           return NextResponse.json(data.map(mapGradDbToClient));
