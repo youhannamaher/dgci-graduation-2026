@@ -2,6 +2,15 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
+
+// Direct JSON template imports for instant local fallbacks
+import infoTemplate from '../../data/ceremony-info.json';
+import progTemplate from '../../data/program.json';
+import gradsTemplate from '../../data/graduates.json';
+import galleryTemplate from '../../data/gallery.json';
+import msgTemplate from '../../data/messages.json';
+import mediaTemplate from '../../data/media-links.json';
+import journeyTemplate from '../../data/journey.json';
 import {
   CeremonyInfo,
   ProgramItem,
@@ -224,10 +233,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loadAllData = async () => {
       setIsLoading(true);
       try {
-        // Load static journey anyway
-        const journeyRes = await fetch('/api/data/journey');
-        const journeyData = await journeyRes.json();
-        setJourney(journeyData);
+        // Load static journey template directly
+        setJourney(journeyTemplate as JourneyItem[]);
 
         if (isSupabaseConfigured && supabase) {
           console.log('Supabase mode active. Loading from database...');
@@ -316,21 +323,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!supabase) return;
 
     try {
-      const [infoRes, progRes, gradsRes, galleryRes, msgRes, mediaRes] = await Promise.all([
-        fetch('/api/data/ceremony-info'),
-        fetch('/api/data/program'),
-        fetch('/api/data/graduates'),
-        fetch('/api/data/gallery'),
-        fetch('/api/data/messages'),
-        fetch('/api/data/media-links')
-      ]);
-
-      const infoData = await infoRes.json();
-      const progData = await progRes.json();
-      const gradsData = await gradsRes.json();
-      const galleryData = await galleryRes.json();
-      const msgData = await msgRes.json();
-      const mediaData = await mediaRes.json();
+      const infoData = infoTemplate as CeremonyInfo;
+      const progData = progTemplate as ProgramItem[];
+      const gradsData = gradsTemplate as Graduate[];
+      const galleryData = galleryTemplate as Photo[];
+      const msgData = msgTemplate as Message[];
+      const mediaData = mediaTemplate as MediaLinks;
 
       setCeremonyInfo(infoData);
       setProgram(progData);
@@ -364,21 +362,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Helper: Load local json templates + apply localStorage changes
   const loadLocalDataWithLocalStorage = async () => {
     try {
-      const [infoRes, progRes, gradsRes, galleryRes, msgRes, mediaRes] = await Promise.all([
-        fetch('/api/data/ceremony-info'),
-        fetch('/api/data/program'),
-        fetch('/api/data/graduates'),
-        fetch('/api/data/gallery'),
-        fetch('/api/data/messages'),
-        fetch('/api/data/media-links')
-      ]);
-
-      let infoData = await infoRes.json();
-      let progData = await progRes.json();
-      let gradsData = await gradsRes.json();
-      let galleryData = await galleryRes.json();
-      let msgData = await msgRes.json();
-      let mediaData = await mediaRes.json();
+      let infoData = { ...infoTemplate } as CeremonyInfo;
+      let progData = [...progTemplate] as ProgramItem[];
+      let gradsData = [...gradsTemplate] as Graduate[];
+      let galleryData = [...galleryTemplate] as Photo[];
+      let msgData = [...msgTemplate] as Message[];
+      let mediaData = { ...mediaTemplate } as MediaLinks;
 
       if (typeof window !== 'undefined') {
         const localInfo = localStorage.getItem('dgci_ceremony_info');
