@@ -33,27 +33,48 @@ export const Navbar = () => {
       <div className="border-b border-gold/10 bg-[#03070d]/60 py-2 px-4 flex justify-between items-center max-w-6xl mx-auto">
         <div className="flex items-center gap-3 md:gap-5 w-full justify-around">
           <div className="flex flex-col items-center justify-center">
-            <span className="text-[9px] uppercase tracking-widest text-gold-light/60 mb-0.5">IAE Poitiers</span>
-            <div className="relative w-12 h-6 flex items-center justify-center bg-gold/10 rounded px-1 border border-gold/20">
-              <span className="text-[10px] font-bold text-gold">IAE</span>
+            <span className="text-[8px] uppercase tracking-widest text-gold-light/40 mb-1">IAE Poitiers</span>
+            <div className="relative h-8 w-24">
+              <Image
+                src="/logos/iae-logo.png"
+                alt="IAE Poitiers Logo"
+                fill
+                sizes="96px"
+                className="object-contain"
+                priority
+              />
             </div>
           </div>
           
-          <div className="h-6 w-[1px] bg-gold/20"></div>
+          <div className="h-6 w-[1px] bg-gold/15"></div>
 
           <div className="flex flex-col items-center justify-center">
-            <span className="text-[9px] uppercase tracking-widest text-gold-light/60 mb-0.5">DGCI</span>
-            <div className="relative w-14 h-7 flex items-center justify-center bg-gold-gradient rounded px-1 shadow-[0_0_8px_rgba(212,175,55,0.3)]">
-              <span className="text-xs font-serif font-extrabold text-[#050B14]">DGCI</span>
+            <span className="text-[8px] uppercase tracking-widest text-gold-light/40 mb-1">DGCI</span>
+            <div className="relative h-9 w-20">
+              <Image
+                src="/logos/dgci-logo.png"
+                alt="DGCI Logo"
+                fill
+                sizes="80px"
+                className="object-contain"
+                priority
+              />
             </div>
           </div>
 
-          <div className="h-6 w-[1px] bg-gold/20"></div>
+          <div className="h-6 w-[1px] bg-gold/15"></div>
 
           <div className="flex flex-col items-center justify-center">
-            <span className="text-[9px] uppercase tracking-widest text-gold-light/60 mb-0.5">Ain Shams</span>
-            <div className="relative w-12 h-6 flex items-center justify-center bg-gold/10 rounded px-1 border border-gold/20">
-              <span className="text-[9px] font-bold text-gold">ASU</span>
+            <span className="text-[8px] uppercase tracking-widest text-gold-light/40 mb-1">Ain Shams</span>
+            <div className="relative h-8 w-24">
+              <Image
+                src="/logos/ainshams-logo.png"
+                alt="Ain Shams Logo"
+                fill
+                sizes="96px"
+                className="object-contain"
+                priority
+              />
             </div>
           </div>
         </div>
