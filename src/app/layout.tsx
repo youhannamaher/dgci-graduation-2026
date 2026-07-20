@@ -17,8 +17,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://dgci-graduation-2026.vercel.app"),
   title: "DGCI Graduation 2026 | Digital Graduation Companion",
-  description: "Digital Companion for the DGCI Graduation Ceremony - Class of 2026",
+  description: "Official digital companion for the DGCI Graduation Ceremony - Class of 2026. Access the event program, graduate profiles, stage walk order, and share memories.",
+  openGraph: {
+    title: "DGCI Graduation 2026 | Digital Graduation Companion",
+    description: "Official digital companion for the DGCI Graduation Ceremony - Class of 2026. Access the event program, graduate profiles, stage walk order, and share memories.",
+    type: "website",
+    locale: "en_US",
+    siteName: "DGCI Graduation 2026",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DGCI Graduation 2026 | Digital Graduation Companion",
+    description: "Official digital companion for the DGCI Graduation Ceremony - Class of 2026. Access the event program, graduate profiles, stage walk order, and share memories.",
+  }
 };
 
 export default function RootLayout({
