@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { readLocalJson } from '@/lib/jsonStore';
+import { sql as rawSql } from '@/lib/dbSql';
 
 let supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
 if (supabaseUrl.endsWith('/rest/v1/')) {
@@ -19,9 +20,9 @@ const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey)
   : null;
 
-// --- CIRCUIT BREAKER SAFETY ---
+// --- CIRCUIT BREAKER SAFETY (FOR HTTP REST FALLBACK) ---
 let lastDbFailureTime = 0;
-const DB_SUSPENSION_DURATION = 600000; // Suspend database connection attempts for 10 minutes after a failure to ensure static loading is lightning fast
+const DB_SUSPENSION_DURATION = 600000; // Suspend HTTP connection attempts for 10 minutes after a failure to ensure static loading is lightning fast
 
 function checkDbHealth(): boolean {
   if (Date.now() - lastDbFailureTime < DB_SUSPENSION_DURATION) {
@@ -32,10 +33,10 @@ function checkDbHealth(): boolean {
 
 function reportDbFailure() {
   lastDbFailureTime = Date.now();
-  console.warn('Database health check failed. Suspending DB queries for 10m to prevent loading hangs.');
+  console.warn('Database HTTP health check failed. Suspending HTTP DB queries for 10m to prevent loading hangs.');
 }
 
-// Timeout utility for server-side database operations (reduced to 1.5s for fast response)
+// Timeout utility for server-side HTTP database operations (reduced to 1.5s for fast response)
 function withTimeout<T>(promise: PromiseLike<T>, ms = 1500): Promise<T> {
   return Promise.race([
     Promise.resolve(promise),
@@ -147,35 +148,35 @@ export async function GET(
   { params }: { params: Promise<{ key: string }> }
 ) {
   const { key } = await params;
+  const sql = rawSql;
 
-  // If Supabase is connected and DB is healthy, load from Supabase database
-  if (isSupabaseConfigured && supabase && checkDbHealth()) {
+  // 1. Try Direct SQL database read if SQL is configured (Bypasses missing DNS records!)
+  if (sql) {
     try {
       switch (key) {
         case 'all': {
           const [info, prog, grads, msgs, pics, links] = await Promise.all([
-            withTimeout(supabase.from('media_links').select('*').eq('type', 'ceremony_info').single(), 1500).catch(() => ({ data: null, error: true })),
-            withTimeout(supabase.from('program_items').select('*').order('item_order', { ascending: true }), 1500).catch(() => ({ data: null, error: true })),
-            withTimeout(supabase.from('graduates').select('*').order('order_number', { ascending: true }), 1500).catch(() => ({ data: null, error: true })),
-            withTimeout(supabase.from('messages').select('*').order('created_at', { ascending: false }), 1500).catch(() => ({ data: null, error: true })),
-            withTimeout(supabase.from('photos').select('*').order('created_at', { ascending: false }), 1500).catch(() => ({ data: null, error: true })),
-            withTimeout(supabase.from('media_links').select('*'), 1500).catch(() => ({ data: null, error: true }))
+            sql`SELECT url FROM media_links WHERE type = 'ceremony_info' LIMIT 1`,
+            sql`SELECT id, item_order as "order", time, title, description, is_current as "isCurrent" FROM program_items ORDER BY item_order ASC`,
+            sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile" FROM graduates ORDER BY order_number ASC`,
+            sql`SELECT id, message, sender_name as "senderName", is_anonymous as "isAnonymous", target_type as "targetType", target_graduate_ids as "targetGraduateIds", relation, status, created_at as "createdAt" FROM messages ORDER BY created_at DESC`,
+            sql`SELECT id, url, caption, uploaded_by as "uploadedBy", status, created_at as "createdAt" FROM photos ORDER BY created_at DESC`,
+            sql`SELECT type, url FROM media_links`
           ]);
 
-          if (info.error || prog.error || grads.error || msgs.error || pics.error || links.error) {
-            reportDbFailure();
-          }
-
-          const infoData = info.data ? JSON.parse(info.data.url) : readLocalJson('ceremony-info.json');
-          const progData = prog.data && prog.data.length > 0 ? prog.data.map(mapProgDbToClient) : readLocalJson('program.json');
-          const gradsData = grads.data && grads.data.length > 0 ? grads.data.map(mapGradDbToClient) : readLocalJson('graduates.json');
-          const msgsData = msgs.data ? msgs.data.map(mapMsgDbToClient) : readLocalJson('messages.json');
-          const galleryData = pics.data ? pics.data.map(mapPhotoDbToClient) : readLocalJson('gallery.json');
+          const infoData = info.length > 0 ? JSON.parse(info[0].url) : readLocalJson('ceremony-info.json');
+          const progData = prog.length > 0 ? prog : readLocalJson('program.json');
+          const gradsData = grads.length > 0 ? grads.map((g: any) => ({ ...g, showProfile: g.showProfile ?? true })) : readLocalJson('graduates.json');
+          const msgsData = msgs.length > 0 ? msgs.map((m: any) => ({
+            ...m,
+            targetGraduateIds: typeof m.targetGraduateIds === 'string' ? JSON.parse(m.targetGraduateIds) : (Array.isArray(m.targetGraduateIds) ? m.targetGraduateIds : [])
+          })) : readLocalJson('messages.json');
+          const galleryData = pics.length > 0 ? pics : readLocalJson('gallery.json');
 
           let mediaLinksData = readLocalJson('media-links.json');
-          if (links.data && links.data.length > 0) {
+          if (links.length > 0) {
             const linksObj = { officialPhotosUrl: '', recapVideoUrl: '', fullCeremonyUrl: '' };
-            links.data.forEach((item: any) => {
+            links.forEach((item: any) => {
               if (item.type === 'photos') linksObj.officialPhotosUrl = item.url;
               if (item.type === 'video_recap') linksObj.recapVideoUrl = item.url;
               if (item.type === 'video_full') linksObj.fullCeremonyUrl = item.url;
@@ -194,6 +195,79 @@ export async function GET(
           });
         }
 
+        case 'ceremony-info': {
+          const rows = await sql`SELECT url FROM media_links WHERE type = 'ceremony_info' LIMIT 1`;
+          if (rows.length > 0) {
+            return NextResponse.json(JSON.parse(rows[0].url));
+          }
+          return NextResponse.json(readLocalJson('ceremony-info.json'));
+        }
+
+        case 'program': {
+          const rows = await sql`SELECT id, item_order as "order", time, title, description, is_current as "isCurrent" FROM program_items ORDER BY item_order ASC`;
+          if (rows.length === 0) {
+            return NextResponse.json(readLocalJson('program.json'));
+          }
+          return NextResponse.json(rows);
+        }
+
+        case 'graduates': {
+          const rows = await sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile" FROM graduates ORDER BY order_number ASC`;
+          if (rows.length === 0) {
+            return NextResponse.json(readLocalJson('graduates.json'));
+          }
+          return NextResponse.json(rows.map((g: any) => ({ ...g, showProfile: g.showProfile ?? true })));
+        }
+
+        case 'messages': {
+          const rows = await sql`SELECT id, message, sender_name as "senderName", is_anonymous as "isAnonymous", target_type as "targetType", target_graduate_ids as "targetGraduateIds", relation, status, created_at as "createdAt" FROM messages ORDER BY created_at DESC`;
+          if (rows.length === 0) {
+            return NextResponse.json(readLocalJson('messages.json'));
+          }
+          return NextResponse.json(rows.map((m: any) => ({
+            ...m,
+            targetGraduateIds: typeof m.targetGraduateIds === 'string' ? JSON.parse(m.targetGraduateIds) : (Array.isArray(m.targetGraduateIds) ? m.targetGraduateIds : [])
+          })));
+        }
+
+        case 'gallery': {
+          const rows = await sql`SELECT id, url, caption, uploaded_by as "uploadedBy", status, created_at as "createdAt" FROM photos ORDER BY created_at DESC`;
+          if (rows.length === 0) {
+            return NextResponse.json(readLocalJson('gallery.json'));
+          }
+          return NextResponse.json(rows);
+        }
+
+        case 'media-links': {
+          const rows = await sql`SELECT type, url FROM media_links`;
+          if (rows.length === 0) {
+            return NextResponse.json(readLocalJson('media-links.json'));
+          }
+          const links = { officialPhotosUrl: '', recapVideoUrl: '', fullCeremonyUrl: '' };
+          rows.forEach((item: any) => {
+            if (item.type === 'photos') links.officialPhotosUrl = item.url;
+            if (item.type === 'video_recap') links.recapVideoUrl = item.url;
+            if (item.type === 'video_full') links.fullCeremonyUrl = item.url;
+          });
+          return NextResponse.json(links);
+        }
+
+        case 'journey':
+          return NextResponse.json(readLocalJson('journey.json'));
+
+        default:
+          return NextResponse.json({ error: 'Endpoint not found' }, { status: 404 });
+      }
+    } catch (e) {
+      console.error(`Direct SQL fetch failed for key '${key}', dropping down to HTTP fallback:`, e);
+      // Fall through to try Supabase HTTP REST or local files
+    }
+  }
+
+  // 2. Try Supabase HTTP REST (Default client-fallback mode)
+  if (isSupabaseConfigured && supabase && checkDbHealth()) {
+    try {
+      switch (key) {
         case 'ceremony-info': {
           const { data, error } = await withTimeout(
             supabase
@@ -317,7 +391,7 @@ export async function GET(
     }
   }
 
-  // Local static files fallback loader
+  // 3. Local static files fallback loader (Runs when both SQL and HTTP fallbacks are suspended/unconfigured)
   if (key === 'all') {
     return NextResponse.json({
       journey: readLocalJson('journey.json'),
@@ -353,6 +427,178 @@ export async function POST(
   { params }: { params: Promise<{ key: string }> }
 ) {
   const { key } = await params;
+  const sql = rawSql;
+
+  // 1. Try Direct SQL database write if SQL is configured
+  if (sql) {
+    try {
+      const body = await request.json();
+      const { action, data, id, fields, list } = body;
+
+      switch (key) {
+        case 'ceremony-info': {
+          await sql`
+            INSERT INTO media_links (id, title, type, url, is_active)
+            VALUES ('ceremony-info', 'Ceremony Info', 'ceremony_info', ${JSON.stringify(data)}, true)
+            ON CONFLICT (id) DO UPDATE SET url = EXCLUDED.url
+          `;
+          return NextResponse.json({ success: true });
+        }
+
+        case 'program': {
+          if (action === 'add') {
+            await sql`
+              INSERT INTO program_items (id, item_order, time, title, description, is_current)
+              VALUES (${data.id}, ${data.order}, ${data.time}, ${data.title}, ${data.description}, ${data.isCurrent})
+            `;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'update') {
+            if (fields.isCurrent) {
+              await sql`UPDATE program_items SET is_current = false WHERE id != ${id}`;
+            }
+            await sql`
+              UPDATE program_items 
+              SET 
+                time = ${fields.time !== undefined ? fields.time : sql`time`},
+                title = ${fields.title !== undefined ? fields.title : sql`title`},
+                description = ${fields.description !== undefined ? fields.description : sql`description`},
+                is_current = ${fields.isCurrent !== undefined ? fields.isCurrent : sql`is_current`},
+                item_order = ${fields.order !== undefined ? fields.order : sql`item_order`}
+              WHERE id = ${id}
+            `;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'delete') {
+            await sql`DELETE FROM program_items WHERE id = ${id}`;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'reorder') {
+            const promises = list.map((item: any) =>
+              sql`UPDATE program_items SET item_order = ${item.order} WHERE id = ${item.id}`
+            );
+            await Promise.all(promises);
+            return NextResponse.json({ success: true });
+          }
+          break;
+        }
+
+        case 'graduates': {
+          if (action === 'add') {
+            await sql`
+              INSERT INTO graduates (id, order_number, full_name, display_name, photo_url, quote, linkedin, instagram, show_profile)
+              VALUES (${data.id}, ${data.order}, ${data.fullName}, ${data.displayName}, ${data.photo}, ${data.quote}, ${data.linkedin}, ${data.instagram}, ${data.showProfile})
+            `;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'update') {
+            await sql`
+              UPDATE graduates 
+              SET 
+                full_name = ${fields.fullName !== undefined ? fields.fullName : sql`full_name`},
+                display_name = ${fields.displayName !== undefined ? fields.displayName : sql`display_name`},
+                photo_url = ${fields.photo !== undefined ? fields.photo : sql`photo_url`},
+                quote = ${fields.quote !== undefined ? fields.quote : sql`quote`},
+                linkedin = ${fields.linkedin !== undefined ? fields.linkedin : sql`linkedin`},
+                instagram = ${fields.instagram !== undefined ? fields.instagram : sql`instagram`},
+                show_profile = ${fields.showProfile !== undefined ? fields.showProfile : sql`show_profile`},
+                order_number = ${fields.order !== undefined ? fields.order : sql`order_number`}
+              WHERE id = ${id}
+            `;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'delete') {
+            await sql`DELETE FROM graduates WHERE id = ${id}`;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'import') {
+            await sql`DELETE FROM graduates`;
+            for (const g of list) {
+              await sql`
+                INSERT INTO graduates (id, order_number, full_name, display_name, photo_url, quote, linkedin, instagram, show_profile)
+                VALUES (${g.id}, ${g.order}, ${g.fullName}, ${g.displayName}, ${g.photo}, ${g.quote}, ${g.linkedin}, ${g.instagram}, ${g.showProfile})
+              `;
+            }
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'reorder') {
+            const promises = list.map((g: any) =>
+              sql`UPDATE graduates SET order_number = ${g.order} WHERE id = ${g.id}`
+            );
+            await Promise.all(promises);
+            return NextResponse.json({ success: true });
+          }
+          break;
+        }
+
+        case 'messages': {
+          if (action === 'create') {
+            await sql`
+              INSERT INTO messages (id, message, sender_name, is_anonymous, target_type, target_graduate_ids, relation, status)
+              VALUES (${data.id}, ${data.message}, ${data.senderName}, ${data.isAnonymous}, ${data.targetType}, ${JSON.stringify(data.targetGraduateIds)}, ${data.relation}, ${data.status})
+            `;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'approve') {
+            await sql`UPDATE messages SET status = 'approved' WHERE id = ${id}`;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'reject') {
+            await sql`UPDATE messages SET status = 'rejected' WHERE id = ${id}`;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'delete') {
+            await sql`DELETE FROM messages WHERE id = ${id}`;
+            return NextResponse.json({ success: true });
+          }
+          break;
+        }
+
+        case 'gallery': {
+          if (action === 'create') {
+            await sql`
+              INSERT INTO photos (id, url, caption, uploaded_by, status)
+              VALUES (${data.id}, ${data.url}, ${data.caption}, ${data.uploadedBy}, ${data.status})
+            `;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'approve') {
+            await sql`UPDATE photos SET status = 'approved' WHERE id = ${id}`;
+            return NextResponse.json({ success: true });
+          }
+          if (action === 'reject' || action === 'delete') {
+            await sql`DELETE FROM photos WHERE id = ${id}`;
+            return NextResponse.json({ success: true });
+          }
+          break;
+        }
+
+        case 'media-links': {
+          await sql`
+            INSERT INTO media_links (id, title, type, url, is_active)
+            VALUES ('photos', 'Official Photos', 'photos', ${data.officialPhotosUrl}, true)
+            ON CONFLICT (id) DO UPDATE SET url = EXCLUDED.url
+          `;
+          await sql`
+            INSERT INTO media_links (id, title, type, url, is_active)
+            VALUES ('video_recap', 'Recap Video', 'video_recap', ${data.recapVideoUrl}, true)
+            ON CONFLICT (id) DO UPDATE SET url = EXCLUDED.url
+          `;
+          await sql`
+            INSERT INTO media_links (id, title, type, url, is_active)
+            VALUES ('video_full', 'Full Ceremony Video', 'video_full', ${data.fullCeremonyUrl}, true)
+            ON CONFLICT (id) DO UPDATE SET url = EXCLUDED.url
+          `;
+          return NextResponse.json({ success: true });
+        }
+      }
+    } catch (e) {
+      console.error(`Direct SQL write action failed for key '${key}', dropping down to HTTP fallback:`, e);
+      // Fall through to try Supabase HTTP REST
+    }
+  }
+
+  // 2. Try Supabase HTTP REST (Default client-fallback mode)
   if (!isSupabaseConfigured || !supabase) {
     return NextResponse.json({ success: true, localOnly: true });
   }
