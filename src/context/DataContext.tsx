@@ -161,10 +161,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMediaLinks(mediaData);
   };
 
-  // Main loader (Queries Vercel Server API, which proxies queries to Supabase)
+  // Main loader (Queries Vercel Server API silently in the background)
   useEffect(() => {
-    const loadAllData = async () => {
-      setIsLoading(true);
+    // 1. Instantly display templates/localStorage overrides to turn off the loading spinner
+    loadLocalDataWithLocalStorage();
+    setJourney(journeyTemplate as JourneyItem[]);
+    setIsLoading(false);
+
+    // 2. Perform background database query to fetch live updates
+    const loadAllDataBackground = async () => {
       try {
         const [journeyRes, infoRes, progRes, gradsRes, msgRes, galleryRes, mediaRes] = await Promise.all([
           fetch('/api/data/journey'),
@@ -178,7 +183,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Throw an error if any of the endpoints returned a non-200 status code
         if (!journeyRes.ok || !infoRes.ok || !progRes.ok || !gradsRes.ok || !msgRes.ok || !galleryRes.ok || !mediaRes.ok) {
-          throw new Error('One or more API endpoints failed');
+          throw new Error('One or more API endpoints returned a non-200 status code');
         }
 
         const journeyData = await journeyRes.json();
@@ -210,6 +215,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (localMedia) mediaData = JSON.parse(localMedia);
         }
 
+        // Silent state update
         setJourney(journeyData);
         setCeremonyInfo(infoData);
         setProgram(progData);
@@ -218,15 +224,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setPhotos(galleryData);
         setMediaLinks(mediaData);
       } catch (e) {
-        console.error('Failed to load API data:', e);
-        setJourney(journeyTemplate as JourneyItem[]);
-        loadLocalDataWithLocalStorage();
-      } finally {
-        setIsLoading(false);
+        console.warn('Background database sync failed, utilizing offline templates:', e);
       }
     };
 
-    loadAllData();
+    loadAllDataBackground();
   }, []);
 
   // --- WRITE ACTIONS (Routed through Vercel API proxy) ---
