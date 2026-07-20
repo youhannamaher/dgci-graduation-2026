@@ -176,6 +176,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           fetch('/api/data/media-links')
         ]);
 
+        // Throw an error if any of the endpoints returned a non-200 status code
+        if (!journeyRes.ok || !infoRes.ok || !progRes.ok || !gradsRes.ok || !msgRes.ok || !galleryRes.ok || !mediaRes.ok) {
+          throw new Error('One or more API endpoints failed');
+        }
+
         const journeyData = await journeyRes.json();
         let infoData = await infoRes.json();
         let progData = await progRes.json();

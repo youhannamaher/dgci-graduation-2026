@@ -115,6 +115,16 @@ const mapPhotoClientToDb = (p: any) => ({
   status: p.status
 });
 
+// Timeout utility for server-side database operations
+function withTimeout<T>(promise: PromiseLike<T>, ms = 3500): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase query timed out')), ms)
+    )
+  ]);
+}
+
 // GET Handler
 export async function GET(
   request: Request,
@@ -127,11 +137,14 @@ export async function GET(
     try {
       switch (key) {
         case 'ceremony-info': {
-          const { data, error } = await supabase
-            .from('media_links')
-            .select('*')
-            .eq('type', 'ceremony_info')
-            .single();
+          const { data, error } = await withTimeout(
+            supabase
+              .from('media_links')
+              .select('*')
+              .eq('type', 'ceremony_info')
+              .single(),
+            3500
+          );
 
           if (error || !data) {
             // Seeding or default fallback
@@ -141,10 +154,13 @@ export async function GET(
         }
 
         case 'program': {
-          const { data, error } = await supabase
-            .from('program_items')
-            .select('*')
-            .order('item_order', { ascending: true });
+          const { data, error } = await withTimeout(
+            supabase
+              .from('program_items')
+              .select('*')
+              .order('item_order', { ascending: true }),
+            3500
+          );
 
           if (error) {
             console.error('Supabase program fetch error:', error);
@@ -165,10 +181,13 @@ export async function GET(
         }
 
         case 'graduates': {
-          const { data, error } = await supabase
-            .from('graduates')
-            .select('*')
-            .order('order_number', { ascending: true });
+          const { data, error } = await withTimeout(
+            supabase
+              .from('graduates')
+              .select('*')
+              .order('order_number', { ascending: true }),
+            3500
+          );
 
           if (error) {
             console.error('Supabase graduates fetch error:', error);
@@ -189,10 +208,13 @@ export async function GET(
         }
 
         case 'messages': {
-          const { data, error } = await supabase
-            .from('messages')
-            .select('*')
-            .order('created_at', { ascending: false });
+          const { data, error } = await withTimeout(
+            supabase
+              .from('messages')
+              .select('*')
+              .order('created_at', { ascending: false }),
+            3500
+          );
 
           if (error || !data) {
             return NextResponse.json(readLocalJson('messages.json'));
@@ -201,10 +223,13 @@ export async function GET(
         }
 
         case 'gallery': {
-          const { data, error } = await supabase
-            .from('photos')
-            .select('*')
-            .order('created_at', { ascending: false });
+          const { data, error } = await withTimeout(
+            supabase
+              .from('photos')
+              .select('*')
+              .order('created_at', { ascending: false }),
+            3500
+          );
 
           if (error || !data) {
             return NextResponse.json(readLocalJson('gallery.json'));
@@ -213,9 +238,12 @@ export async function GET(
         }
 
         case 'media-links': {
-          const { data, error } = await supabase
-            .from('media_links')
-            .select('*');
+          const { data, error } = await withTimeout(
+            supabase
+              .from('media_links')
+              .select('*'),
+            3500
+          );
 
           if (error || !data || data.length === 0) {
             return NextResponse.json(readLocalJson('media-links.json'));
