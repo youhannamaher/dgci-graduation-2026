@@ -31,51 +31,42 @@ export const Navbar = () => {
     <header className="sticky top-0 z-50 w-full glass-card border-b border-gold/20 bg-[#050B14]/90 backdrop-blur-md">
       {/* Logos Bar */}
       <div className="border-b border-gold/10 bg-[#03070d]/60 py-2 px-4 flex justify-between items-center max-w-6xl mx-auto">
-        <div className="flex items-center gap-3 md:gap-5 w-full justify-around">
-          <div className="flex flex-col items-center justify-center">
-            <span className="text-[8px] uppercase tracking-widest text-gold-light/40 mb-1">IAE Poitiers</span>
-            <div className="relative h-8 w-24">
-              <Image
-                src="/logos/iae-logo.png"
-                alt="IAE Poitiers Logo"
-                fill
-                sizes="96px"
-                className="object-contain"
-                priority
-              />
-            </div>
+        <div className="flex items-center gap-3 md:gap-5 w-full justify-around py-1.5">
+          <div className="relative h-12 w-28">
+            <Image
+              src="/logos/iae-logo.png"
+              alt="IAE Poitiers Logo"
+              fill
+              sizes="112px"
+              className="object-contain"
+              priority
+            />
           </div>
           
-          <div className="h-6 w-[1px] bg-gold/15"></div>
+          <div className="h-8 w-[1px] bg-gold/15"></div>
 
-          <div className="flex flex-col items-center justify-center">
-            <span className="text-[8px] uppercase tracking-widest text-gold-light/40 mb-1">DGCI</span>
-            <div className="relative h-9 w-20">
-              <Image
-                src="/logos/dgci-logo.png"
-                alt="DGCI Logo"
-                fill
-                sizes="80px"
-                className="object-contain"
-                priority
-              />
-            </div>
+          <div className="relative h-12 w-24">
+            <Image
+              src="/logos/dgci-logo.png"
+              alt="DGCI Logo"
+              fill
+              sizes="96px"
+              className="object-contain"
+              priority
+            />
           </div>
 
-          <div className="h-6 w-[1px] bg-gold/15"></div>
+          <div className="h-8 w-[1px] bg-gold/15"></div>
 
-          <div className="flex flex-col items-center justify-center">
-            <span className="text-[8px] uppercase tracking-widest text-gold-light/40 mb-1">Ain Shams</span>
-            <div className="relative h-8 w-24">
-              <Image
-                src="/logos/ainshams-logo.png"
-                alt="Ain Shams Logo"
-                fill
-                sizes="96px"
-                className="object-contain"
-                priority
-              />
-            </div>
+          <div className="relative h-12 w-28">
+            <Image
+              src="/logos/ainshams-logo.png"
+              alt="Ain Shams Logo"
+              fill
+              sizes="112px"
+              className="object-contain"
+              priority
+            />
           </div>
         </div>
       </div>
