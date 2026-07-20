@@ -228,6 +228,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     sessionStorage.removeItem('dgci_admin_authenticated');
   };
 
+// Timeout utility to protect client against hanging database requests
+function withTimeout<T>(promise: Promise<T>, ms = 4000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase request timed out')), ms)
+    )
+  ]);
+}
+
   // Main loader
   useEffect(() => {
     const loadAllData = async () => {
@@ -239,34 +249,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (isSupabaseConfigured && supabase) {
           console.log('Supabase mode active. Loading from database...');
           
-          // 1. Fetch Graduates
-          const { data: gradsDb, error: gradsErr } = await supabase
-            .from('graduates')
-            .select('*')
-            .order('order_number', { ascending: true });
-            
-          // 2. Fetch Program Items
-          const { data: progDb, error: progErr } = await supabase
-            .from('program_items')
-            .select('*')
-            .order('item_order', { ascending: true });
+          // Fetch all data in parallel under a 4-second timeout limit
+          const [gradsRes, progRes, msgRes, photoRes, mediaRes] = await withTimeout(
+            Promise.all([
+              supabase.from('graduates').select('*').order('order_number', { ascending: true }),
+              supabase.from('program_items').select('*').order('item_order', { ascending: true }),
+              supabase.from('messages').select('*').order('created_at', { ascending: false }),
+              supabase.from('photos').select('*').order('created_at', { ascending: false }),
+              supabase.from('media_links').select('*')
+            ]),
+            4000
+          );
 
-          // 3. Fetch Messages
-          const { data: msgDb, error: msgErr } = await supabase
-            .from('messages')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-          // 4. Fetch Photos
-          const { data: photoDb, error: photoErr } = await supabase
-            .from('photos')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-          // 5. Fetch Media Links & Ceremony Info row
-          const { data: mediaDb, error: mediaErr } = await supabase
-            .from('media_links')
-            .select('*');
+          const gradsDb = gradsRes.data;
+          const gradsErr = gradsRes.error;
+          const progDb = progRes.data;
+          const progErr = progRes.error;
+          const msgDb = msgRes.data;
+          const msgErr = msgRes.error;
+          const photoDb = photoRes.data;
+          const photoErr = photoRes.error;
+          const mediaDb = mediaRes.data;
+          const mediaErr = mediaRes.error;
 
           if (gradsErr || progErr || msgErr || photoErr || mediaErr) {
             console.warn('Error fetching from Supabase, falling back to local files:', { gradsErr, progErr, msgErr, photoErr, mediaErr });
@@ -278,9 +282,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
               await seedSupabaseFromLocal();
             } else {
               setGraduates(gradsDb.map(mapGradDbToClient));
-              setProgram(progDb.map(mapProgDbToClient));
-              setMessages(msgDb.map(mapMsgDbToClient));
-              setPhotos(photoDb.map(mapPhotoDbToClient));
+              setProgram(progDb!.map(mapProgDbToClient));
+              setMessages(msgDb!.map(mapMsgDbToClient));
+              setPhotos(photoDb!.map(mapPhotoDbToClient));
               
               // Set media links and ceremony info
               const links: MediaLinks = { officialPhotosUrl: '', recapVideoUrl: '', fullCeremonyUrl: '' };
