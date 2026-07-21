@@ -57,44 +57,6 @@ export const Footer = () => {
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4">
-            {/* Database Health Badge */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gold/20 bg-[#050B14]/90 text-[10px]">
-              {dbSource === 'loading' && (
-                <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></span>
-                  <span className="text-yellow-400/90 font-medium">Connecting...</span>
-                </>
-              )}
-              {(dbSource === 'supabase' || dbSource === 'sql') && (
-                <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
-                  <span className="text-emerald-400 font-medium">Supabase Connected ({dbSource.toUpperCase()})</span>
-                </>
-              )}
-              {dbSource === 'template' && (
-                <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  <span className="text-amber-400 font-medium">Offline Fallback</span>
-                  <button
-                    onClick={() => refreshData()}
-                    className="ml-1 text-gold underline hover:text-white transition-colors"
-                    title="Force Re-sync with Supabase"
-                  >
-                    Sync
-                  </button>
-                </>
-              )}
-            </div>
-
-            <a
-              href={ceremonyInfo.whatsappNumber ? `https://wa.me/${ceremonyInfo.whatsappNumber.replace(/[^0-9]/g, '')}` : "https://wa.me/"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition-colors font-semibold"
-            >
-              <MessageCircle className="h-3.5 w-3.5" />
-              WhatsApp
-            </a>
             <a
               href="https://www.instagram.com/dgci2026?igsh=aWdpYmxxMGxhOGRj"
               target="_blank"
@@ -103,9 +65,6 @@ export const Footer = () => {
             >
               Instagram
             </a>
-            <Link href="/qr" className="hover:text-gold transition-colors">
-              QR Code
-            </Link>
             <Link href="/admin" className="hover:text-gold transition-colors font-medium">
               Admin Portal
             </Link>

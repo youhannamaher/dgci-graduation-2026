@@ -72,14 +72,6 @@ export default function MediaHubPage() {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    // Check size limit: 5MB per file
-    const oversized = files.find(f => f.size > 5 * 1024 * 1024);
-    if (oversized) {
-      setErrorMessage('Each image must be smaller than 5 MB.');
-      setUploadStatus('error');
-      return;
-    }
-
     setSelectedFiles(files);
     setPreviewUrl(URL.createObjectURL(files[0]));
     setUploadStatus('idle');
@@ -203,7 +195,7 @@ export default function MediaHubPage() {
                   <div className="py-4 flex flex-col items-center">
                     <Upload className="h-8 w-8 text-gold/60 mb-2" />
                     <span className="text-xs text-gray-300 font-semibold">Select Photos from Library or Camera</span>
-                    <span className="text-[9px] text-gray-500 mt-1">Select one or multiple photos (up to 5MB each)</span>
+                    <span className="text-[9px] text-gray-500 mt-1">Select one or multiple photos (any size auto-compressed)</span>
                   </div>
                 )}
               </div>
