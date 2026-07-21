@@ -31,8 +31,15 @@ export const StudentAvatar: React.FC<StudentAvatarProps> = ({
     xl: 'h-28 w-28 text-2xl',
   };
 
-  // We consider it has a photo if photoUrl is defined, not empty, and hasn't errored out
-  const hasPhoto = photoUrl && photoUrl.trim() !== '' && !imgError;
+  // Filter out dummy or sample photo paths to prevent 404 broken image icons
+  const isDummyUrl = photoUrl && (
+    photoUrl.includes('/student-') ||
+    photoUrl.includes('placeholder') ||
+    photoUrl.includes('sample') ||
+    photoUrl.startsWith('/graduates/student')
+  );
+
+  const hasPhoto = photoUrl && photoUrl.trim() !== '' && !isDummyUrl && !imgError;
 
   if (hasPhoto) {
     return (
@@ -40,11 +47,11 @@ export const StudentAvatar: React.FC<StudentAvatarProps> = ({
         src={photoUrl}
         alt={fullName}
         onError={() => {
-          console.warn(`Failed to load photo: ${photoUrl}, using initials avatar.`);
           setImgError(true);
         }}
-        className={`${sizeClasses[size]} rounded-full object-cover border border-gold/30 ${className}`}
+        className={`${sizeClasses[size]} rounded-full object-cover border border-gold/30 shrink-0 ${className}`}
         loading="lazy"
+        decoding="async"
       />
     );
   }
