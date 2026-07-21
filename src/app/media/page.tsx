@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '@/context/DataContext';
-import { Camera, Image as ImageIcon, Video, ExternalLink, HelpCircle, Upload, CheckCircle2, AlertTriangle, Play } from 'lucide-react';
+import { Camera, Image as ImageIcon, Video, ExternalLink, HelpCircle, Upload, CheckCircle2, AlertTriangle, Play, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, X } from 'lucide-react';
 
 export default function MediaHubPage() {
   const { photos, mediaLinks, submitPhoto, isLoading } = useData();
@@ -19,14 +19,63 @@ export default function MediaHubPage() {
   const [uploadCount, setUploadCount] = useState(0);
 
   // Lightbox State
-  const [activePhotoUrl, setActivePhotoUrl] = useState<string | null>(null);
+  const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
   // Only show approved photos in public gallery
   const approvedPhotos = useMemo(() => {
     return photos.filter((p) => p.status === 'approved');
   }, [photos]);
 
-  // Client-side image compression
+  // Keyboard navigation & Esc key listener for Lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (activePhotoIndex === null) return;
+      if (e.key === 'ArrowRight') {
+        setActivePhotoIndex((prev) => (prev !== null && prev < approvedPhotos.length - 1 ? prev + 1 : 0));
+        setIsZoomed(false);
+      } else if (e.key === 'ArrowLeft') {
+        setActivePhotoIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : approvedPhotos.length - 1));
+        setIsZoomed(false);
+      } else if (e.key === 'Escape') {
+        setActivePhotoIndex(null);
+        setIsZoomed(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activePhotoIndex, approvedPhotos.length]);
+
+  // Touch Swipe handlers for mobile photo navigation
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX || isZoomed) return;
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 40;
+    const isRightSwipe = distance < -40;
+
+    if (isLeftSwipe && activePhotoIndex !== null) {
+      setActivePhotoIndex((prev) => (prev !== null && prev < approvedPhotos.length - 1 ? prev + 1 : 0));
+      setIsZoomed(false);
+    } else if (isRightSwipe && activePhotoIndex !== null) {
+      setActivePhotoIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : approvedPhotos.length - 1));
+      setIsZoomed(false);
+    }
+
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
+  // Client-side image compression (HD 1400px quality)
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -36,8 +85,8 @@ export default function MediaHubPage() {
         img.src = event.target?.result as string;
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
+          const MAX_WIDTH = 1400;
+          const MAX_HEIGHT = 1400;
           let width = img.width;
           let height = img.height;
 
@@ -58,8 +107,8 @@ export default function MediaHubPage() {
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
 
-          // Compress to JPEG with 0.75 quality
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          // Compress to JPEG with 0.82 quality for high-definition sharpness
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
           resolve(compressedDataUrl);
         };
         img.onerror = (err) => reject(err);
@@ -120,7 +169,6 @@ export default function MediaHubPage() {
     }
   };
 
-  // Helper to extract Youtube ID for embed
   const getYoutubeEmbedUrl = (url: string) => {
     if (!url) return '';
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -130,6 +178,8 @@ export default function MediaHubPage() {
 
   const recapEmbed = useMemo(() => getYoutubeEmbedUrl(mediaLinks.recapVideoUrl), [mediaLinks.recapVideoUrl]);
   const fullEmbed = useMemo(() => getYoutubeEmbedUrl(mediaLinks.fullCeremonyUrl), [mediaLinks.fullCeremonyUrl]);
+
+  const activePhoto = activePhotoIndex !== null ? approvedPhotos[activePhotoIndex] : null;
 
   return (
     <div className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full space-y-10">
@@ -148,7 +198,6 @@ export default function MediaHubPage() {
 
       {/* Grid: Upload & Official Albums */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Upload Form Box */}
         <div className="glass-card rounded-2xl p-6 border-gold/20 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -174,7 +223,6 @@ export default function MediaHubPage() {
             )}
 
             <form onSubmit={handleUploadSubmit} className="space-y-4 font-sans">
-              {/* Dropzone */}
               <div className="border-2 border-dashed border-gold/25 hover:border-gold/60 rounded-xl p-4 text-center cursor-pointer transition-all bg-[#03070d]/50 relative">
                 <input
                   type="file"
@@ -200,7 +248,6 @@ export default function MediaHubPage() {
                 )}
               </div>
 
-              {/* Caption */}
               <div>
                 <label className="block text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1">
                   Caption (Optional)
@@ -214,7 +261,6 @@ export default function MediaHubPage() {
                 />
               </div>
 
-              {/* Name */}
               <div>
                 <label className="block text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1">
                   Your Name (Optional)
@@ -228,7 +274,6 @@ export default function MediaHubPage() {
                 />
               </div>
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={selectedFiles.length === 0 || uploadStatus === 'uploading'}
@@ -243,7 +288,6 @@ export default function MediaHubPage() {
           </div>
         </div>
 
-        {/* Official Photos Link Box */}
         <div className="glass-card rounded-2xl p-6 border-gold/20 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -288,7 +332,6 @@ export default function MediaHubPage() {
         </div>
       </div>
 
-      {/* Section 3: Ceremony Video */}
       <div className="w-full">
         <div className="flex items-center gap-2 mb-4">
           <Video className="h-5 w-5 text-gold" />
@@ -296,7 +339,6 @@ export default function MediaHubPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Recap Video Box */}
           <div className="glass-card rounded-2xl p-5 border border-gold/15">
             <h3 className="text-xs uppercase tracking-wider text-gold-light font-semibold mb-3">Recap Video</h3>
             {recapEmbed ? (
@@ -317,7 +359,6 @@ export default function MediaHubPage() {
             )}
           </div>
 
-          {/* DGCI 2026 Video Box */}
           <div className="glass-card rounded-2xl p-5 border border-gold/15">
             <h3 className="text-xs uppercase tracking-wider text-gold-light font-semibold mb-3">DGCI 2026 Video</h3>
             {fullEmbed ? (
@@ -340,7 +381,6 @@ export default function MediaHubPage() {
         </div>
       </div>
 
-      {/* Section 4: Approved Guest Uploads Gallery */}
       <div className="w-full">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-base uppercase tracking-[0.15em] text-gold font-bold font-serif">Guest Memories Gallery</h2>
@@ -350,17 +390,19 @@ export default function MediaHubPage() {
         </div>
 
         {approvedPhotos.length === 0 ? (
-          <div className="glass-card rounded-2xl p-8 text-center border-gold/10 max-w-sm mx-auto">
-            <HelpCircle className="h-8 w-8 text-gold mx-auto mb-2 opacity-50" />
-            <p className="text-gray-400 text-xs">No approved guest photos yet. Upload yours above to share the memory!</p>
+          <div className="glass-card rounded-2xl p-8 text-center border-gold/15 text-gray-500 text-xs">
+            <p>No guest photos uploaded yet. Be the first to share your memories!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {approvedPhotos.map((photo) => (
+            {approvedPhotos.map((photo, index) => (
               <div
                 key={photo.id}
-                onClick={() => setActivePhotoUrl(photo.url)}
-                className="glass-card rounded-xl overflow-hidden border border-gold/10 hover:border-gold/30 cursor-zoom-in transition-all duration-300 group flex flex-col h-full"
+                onClick={() => {
+                  setActivePhotoIndex(index);
+                  setIsZoomed(false);
+                }}
+                className="glass-card rounded-xl overflow-hidden border border-gold/10 hover:border-gold/30 cursor-pointer transition-all duration-300 group flex flex-col h-full"
               >
                 <div className="relative aspect-square w-full overflow-hidden bg-black/25 flex items-center justify-center">
                   <img
@@ -386,20 +428,108 @@ export default function MediaHubPage() {
         )}
       </div>
 
-      {/* Lightbox Overlay */}
-      {activePhotoUrl && (
+      {/* Interactive Mobile Touch-Swipe & Zoom Lightbox Overlay */}
+      {activePhotoIndex !== null && activePhoto && (
         <div
-          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out animate-fadeIn"
-          onClick={() => setActivePhotoUrl(null)}
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-2 sm:p-4 animate-fadeIn select-none"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
-          <div className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center">
-            <img src={activePhotoUrl} alt="Expanded preview" className="object-contain max-w-full max-h-full rounded border border-gold/20 shadow-2xl" />
+          {/* Top Bar: Counter & Controls */}
+          <div className="w-full max-w-5xl flex justify-between items-center py-2 px-2 z-10">
+            <span className="text-xs text-gold font-mono font-medium">
+              Photo {activePhotoIndex + 1} of {approvedPhotos.length}
+            </span>
+
+            <div className="flex items-center gap-3">
+              {/* Download Button */}
+              <a
+                href={activePhoto.url}
+                download={`dgci-photo-${activePhotoIndex + 1}.jpg`}
+                className="p-2 rounded-full bg-gold/15 text-gold hover:bg-gold hover:text-navy-dark transition-all"
+                title="Download Photo"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Download className="h-4 w-4" />
+              </a>
+
+              {/* Zoom Toggle */}
+              <button
+                onClick={() => setIsZoomed(!isZoomed)}
+                className="p-2 rounded-full bg-gold/15 text-gold hover:bg-gold hover:text-navy-dark transition-all"
+                title={isZoomed ? 'Zoom Out' : 'Zoom In'}
+              >
+                {isZoomed ? <ZoomOut className="h-4 w-4" /> : <ZoomIn className="h-4 w-4" />}
+              </button>
+
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  setActivePhotoIndex(null);
+                  setIsZoomed(false);
+                }}
+                className="p-2 rounded-full bg-gold/25 text-white hover:bg-gold hover:text-navy-dark transition-all"
+                title="Close (Esc)"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Main Photo Display Area */}
+          <div className="relative flex-1 w-full max-w-5xl flex items-center justify-center overflow-hidden my-2">
+            {/* Previous Arrow Button */}
             <button
-              onClick={() => setActivePhotoUrl(null)}
-              className="absolute top-2 right-2 text-white bg-gold/25 hover:bg-gold hover:text-navy-dark p-2 rounded-full text-xs font-bold transition-all"
+              onClick={() => {
+                setActivePhotoIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : approvedPhotos.length - 1));
+                setIsZoomed(false);
+              }}
+              className="absolute left-2 z-20 p-2.5 rounded-full bg-black/60 border border-gold/20 text-gold hover:bg-gold hover:text-navy-dark transition-all shadow-lg"
+              title="Previous Photo (Left Arrow)"
             >
-              ✕
+              <ChevronLeft className="h-6 w-6" />
             </button>
+
+            {/* Photo Image Container */}
+            <div
+              className={`relative max-w-full max-h-full flex items-center justify-center transition-transform duration-300 ${
+                isZoomed ? 'overflow-auto cursor-grab scale-[2.2] z-10' : 'cursor-zoom-in'
+              }`}
+              onDoubleClick={() => setIsZoomed(!isZoomed)}
+            >
+              <img
+                src={activePhoto.url}
+                alt={activePhoto.caption || 'Expanded photo'}
+                className="object-contain max-w-[92vw] max-h-[78vh] rounded-lg border border-gold/20 shadow-2xl transition-all"
+              />
+            </div>
+
+            {/* Next Arrow Button */}
+            <button
+              onClick={() => {
+                setActivePhotoIndex((prev) => (prev !== null && prev < approvedPhotos.length - 1 ? prev + 1 : 0));
+                setIsZoomed(false);
+              }}
+              className="absolute right-2 z-20 p-2.5 rounded-full bg-black/60 border border-gold/20 text-gold hover:bg-gold hover:text-navy-dark transition-all shadow-lg"
+              title="Next Photo (Right Arrow)"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </div>
+
+          {/* Bottom Bar: Caption & Uploader Details */}
+          <div className="w-full max-w-xl text-center py-2 px-4 bg-[#03070d]/80 rounded-xl border border-gold/15 backdrop-blur-md">
+            {activePhoto.caption ? (
+              <p className="text-xs text-gray-200 font-sans italic mb-1">
+                &ldquo;{activePhoto.caption}&rdquo;
+              </p>
+            ) : (
+              <p className="text-[10px] text-gray-500 italic mb-1">DGCI Graduation 2026 Memory</p>
+            )}
+            <span className="text-[10px] text-gold font-medium">
+              Uploaded by: {activePhoto.uploadedBy}
+            </span>
           </div>
         </div>
       )}
