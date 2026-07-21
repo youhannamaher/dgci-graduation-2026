@@ -20,24 +20,8 @@ const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey)
   : null;
 
-// --- CIRCUIT BREAKER SAFETY (FOR HTTP REST FALLBACK) ---
-let lastDbFailureTime = 0;
-const DB_SUSPENSION_DURATION = 600000; // Suspend HTTP connection attempts for 10 minutes after a failure to ensure static loading is lightning fast
-
-function checkDbHealth(): boolean {
-  if (Date.now() - lastDbFailureTime < DB_SUSPENSION_DURATION) {
-    return false; // Database is suspended (unhealthy)
-  }
-  return true; // Database is healthy to try
-}
-
-function reportDbFailure() {
-  lastDbFailureTime = Date.now();
-  console.warn('Database HTTP health check failed. Suspending HTTP DB queries for 10m to prevent loading hangs.');
-}
-
-// Timeout utility for server-side HTTP database operations (reduced to 1.5s for fast response)
-function withTimeout<T>(promise: PromiseLike<T>, ms = 1500): Promise<T> {
+// Timeout utility for server-side HTTP database operations (4s for reliable response)
+function withTimeout<T>(promise: PromiseLike<T>, ms = 4000): Promise<T> {
   return Promise.race([
     Promise.resolve(promise),
     new Promise<T>((_, reject) =>
@@ -266,22 +250,18 @@ export async function GET(
   }
 
   // 2. Try Supabase HTTP REST (Default client-fallback mode)
-  if (isSupabaseConfigured && supabase && checkDbHealth()) {
+  if (isSupabaseConfigured && supabase) {
     try {
       switch (key) {
         case 'all': {
           const [info, prog, grads, msgs, pics, links] = await Promise.all([
-            withTimeout(supabase.from('media_links').select('*').eq('type', 'ceremony_info').single(), 1500).catch(() => ({ data: null, error: true })),
-            withTimeout(supabase.from('program_items').select('*').order('item_order', { ascending: true }), 1500).catch(() => ({ data: null, error: true })),
-            withTimeout(supabase.from('graduates').select('*').order('order_number', { ascending: true }), 1500).catch(() => ({ data: null, error: true })),
-            withTimeout(supabase.from('messages').select('*').order('created_at', { ascending: false }), 1500).catch(() => ({ data: null, error: true })),
-            withTimeout(supabase.from('photos').select('*').order('created_at', { ascending: false }), 1500).catch(() => ({ data: null, error: true })),
-            withTimeout(supabase.from('media_links').select('*'), 1500).catch(() => ({ data: null, error: true }))
+            withTimeout(supabase.from('media_links').select('*').eq('type', 'ceremony_info').single(), 4000).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('program_items').select('*').order('item_order', { ascending: true }), 4000).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('graduates').select('*').order('order_number', { ascending: true }), 4000).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('messages').select('*').order('created_at', { ascending: false }), 4000).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('photos').select('*').order('created_at', { ascending: false }), 4000).catch(() => ({ data: null, error: true })),
+            withTimeout(supabase.from('media_links').select('*'), 4000).catch(() => ({ data: null, error: true }))
           ]);
-
-          if (info.error || prog.error || grads.error || msgs.error || pics.error || links.error) {
-            reportDbFailure();
-          }
 
           const infoData = info.data ? JSON.parse(info.data.url) : readLocalJson('ceremony-info.json');
           const progData = prog.data && prog.data.length > 0 ? prog.data.map(mapProgDbToClient) : readLocalJson('program.json');
@@ -339,7 +319,6 @@ export async function GET(
 
           if (error) {
             console.error('Supabase program fetch error:', error);
-            reportDbFailure();
             return NextResponse.json(readLocalJson('program.json'));
           }
           if (!data || data.length === 0) {
@@ -359,7 +338,6 @@ export async function GET(
 
           if (error) {
             console.error('Supabase graduates fetch error:', error);
-            reportDbFailure();
             return NextResponse.json(readLocalJson('graduates.json'));
           }
           if (!data || data.length === 0) {
@@ -378,7 +356,6 @@ export async function GET(
           );
 
           if (error || !data) {
-            if (error) reportDbFailure();
             return NextResponse.json(readLocalJson('messages.json'));
           }
           return NextResponse.json(data.map(mapMsgDbToClient));
@@ -394,7 +371,6 @@ export async function GET(
           );
 
           if (error || !data) {
-            if (error) reportDbFailure();
             return NextResponse.json(readLocalJson('gallery.json'));
           }
           return NextResponse.json(data.map(mapPhotoDbToClient));
@@ -409,7 +385,6 @@ export async function GET(
           );
 
           if (error || !data || data.length === 0) {
-            if (error) reportDbFailure();
             return NextResponse.json(readLocalJson('media-links.json'));
           }
 
@@ -430,7 +405,6 @@ export async function GET(
       }
     } catch (e) {
       console.error(`Supabase query timed out or failed on server for ${key}:`, e);
-      reportDbFailure();
       // Fallback below to local files
     }
   }
