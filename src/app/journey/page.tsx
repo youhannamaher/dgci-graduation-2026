@@ -11,7 +11,7 @@ export default function JourneyPage() {
 
   const stats = useMemo(() => {
     const totalGrads = graduates.length || 59;
-    const honorsCount = graduates.filter(g => g.order <= 10 || g.isHighestHonors).length || 10;
+    const honorsCount = graduates.filter(g => g.isHighestHonors === true || (typeof g.honorsOrder === 'number' && g.honorsOrder > 0)).length;
     const bourseCount = graduates.filter(g => g.bourse && g.bourse.trim() !== '').length || 3;
     const masterCount = graduates.filter(g => g.masterProgram && g.masterProgram.trim() !== '').length || 9;
 

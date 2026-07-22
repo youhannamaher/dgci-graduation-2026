@@ -20,8 +20,12 @@ export default function CertificateOrderPage() {
   // Highest Honors graduates list (for Section 1)
   const honorsGraduates = useMemo(() => {
     return licenseGraduates
-      .filter((g) => g.isHighestHonors || (g.honorsOrder !== undefined && g.honorsOrder !== null) || g.order <= 10)
-      .sort((a, b) => (a.honorsOrder || a.order) - (b.honorsOrder || b.order));
+      .filter((g) => g.isHighestHonors === true || (typeof g.honorsOrder === 'number' && g.honorsOrder > 0))
+      .sort((a, b) => {
+        const rankA = typeof a.honorsOrder === 'number' && a.honorsOrder > 0 ? a.honorsOrder : 999;
+        const rankB = typeof b.honorsOrder === 'number' && b.honorsOrder > 0 ? b.honorsOrder : 999;
+        return rankA - rankB;
+      });
   }, [licenseGraduates]);
 
   // Counts for filters
@@ -238,7 +242,7 @@ export default function CertificateOrderPage() {
             </div>
 
             {filteredLicense.map((grad) => {
-              const isHighestHonors = grad.isHighestHonors || (grad.honorsOrder !== undefined && grad.honorsOrder !== null) || grad.order <= 10;
+              const isHighestHonors = grad.isHighestHonors === true || (typeof grad.honorsOrder === 'number' && grad.honorsOrder > 0);
 
               return (
                 <div

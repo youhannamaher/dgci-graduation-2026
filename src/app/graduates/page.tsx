@@ -97,7 +97,7 @@ export default function GraduatesPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {displayedGraduates.map((grad) => {
-            const isHighestHonors = grad.order <= 10 || grad.isHighestHonors;
+            const isHighestHonors = grad.isHighestHonors === true || (typeof grad.honorsOrder === 'number' && grad.honorsOrder > 0);
 
             return (
               <div

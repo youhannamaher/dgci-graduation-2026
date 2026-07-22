@@ -101,9 +101,9 @@ export default function GraduateProfilePage({ params }: ProfileParams) {
         </p>
 
         {/* Academic Honors & Badges */}
-        {((graduate.order <= 10 || graduate.isHighestHonors) || graduate.bourse || graduate.masterProgram) && (
+        {(graduate.isHighestHonors === true || (typeof graduate.honorsOrder === 'number' && graduate.honorsOrder > 0) || graduate.bourse || graduate.masterProgram) && (
           <div className="flex flex-wrap justify-center gap-2 my-4">
-            {(graduate.order <= 10 || graduate.isHighestHonors) && (
+            {(graduate.isHighestHonors === true || (typeof graduate.honorsOrder === 'number' && graduate.honorsOrder > 0)) && (
               <div className="bg-gold-gradient text-navy-dark px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-[0_0_12px_rgba(212,175,55,0.4)]">
                 <Trophy className="h-3.5 w-3.5" /> Highest Honors
               </div>
