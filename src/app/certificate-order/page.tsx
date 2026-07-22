@@ -12,7 +12,7 @@ export default function CertificateOrderPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'honors' | 'bourse' | 'master'>('all');
 
-  // Sorted full graduates list for License Certificate Distribution (#001 - #059)
+  // Sorted full graduates list for License Certificate Distribution (#001 - #058)
   const licenseGraduates = useMemo(() => {
     return [...graduates].sort((a, b) => a.order - b.order);
   }, [graduates]);
@@ -69,24 +69,24 @@ export default function CertificateOrderPage() {
     <div className="max-w-3xl mx-auto px-4 py-8 w-full animate-fadeIn">
       {/* Header */}
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center p-2.5 rounded-full bg-gold/10 border border-gold/30 mb-3 text-gold">
-          <Award className="h-6 w-6" />
+        <div className="inline-flex items-center justify-center p-2 rounded-full bg-gold/10 border border-gold/30 mb-2 text-gold">
+          <Award className="h-5 w-5" />
         </div>
-        <h1 className="text-2xl md:text-3xl font-serif font-extrabold text-gold-light tracking-wide mb-2">
+        <h1 className="text-xl md:text-2xl font-serif font-extrabold text-gold-light tracking-wide mb-1.5">
           Certificate Distribution Order
         </h1>
         <p className="text-gray-400 text-xs max-w-lg mx-auto leading-relaxed font-sans">
-          Celebrating our graduates across two distinct ceremony moments: The <strong className="text-gold">🏆 Highest Honors Ceremony</strong> and the <strong className="text-gold">🎓 License Certificate Distribution</strong> (All 59 Graduates).
+          Celebrating our graduates across two ceremony moments: The <strong className="text-gold">🏆 Highest Honors Ceremony</strong> and the <strong className="text-gold">🎓 License Certificate Distribution</strong> (All 58 Graduates).
         </p>
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-2.5 mb-5">
         {/* Filter Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 bg-[#03070d]/60 border border-gold/15 p-2 rounded-xl text-xs">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 bg-[#03070d]/60 border border-gold/15 p-1.5 rounded-xl text-xs">
           <button
             onClick={() => setActiveFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+            className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
               activeFilter === 'all'
                 ? 'bg-gold-gradient text-navy-dark shadow-[0_0_10px_rgba(212,175,55,0.3)]'
                 : 'text-gray-400 hover:text-gold hover:bg-gold/5'
@@ -96,7 +96,7 @@ export default function CertificateOrderPage() {
           </button>
           <button
             onClick={() => setActiveFilter('honors')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all inline-flex items-center gap-1 ${
+            className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all inline-flex items-center gap-1 ${
               activeFilter === 'honors'
                 ? 'bg-gold-gradient text-navy-dark shadow-[0_0_10px_rgba(212,175,55,0.3)]'
                 : 'text-gray-400 hover:text-gold hover:bg-gold/5'
@@ -106,7 +106,7 @@ export default function CertificateOrderPage() {
           </button>
           <button
             onClick={() => setActiveFilter('bourse')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all inline-flex items-center gap-1 ${
+            className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all inline-flex items-center gap-1 ${
               activeFilter === 'bourse'
                 ? 'bg-emerald-500 text-navy-dark shadow-[0_0_10px_rgba(16,185,129,0.3)]'
                 : 'text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10'
@@ -116,7 +116,7 @@ export default function CertificateOrderPage() {
           </button>
           <button
             onClick={() => setActiveFilter('master')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all inline-flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all inline-flex items-center gap-1.5 ${
               activeFilter === 'master'
                 ? 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]'
                 : 'text-gray-400 hover:text-blue-400 hover:bg-blue-500/10'
@@ -136,7 +136,7 @@ export default function CertificateOrderPage() {
             placeholder="Search student by name, order #, bourse, or master..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full pl-10 pr-4 py-2.5 bg-[#03070d]/70 border border-gold/25 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-all"
+            className="block w-full pl-10 pr-4 py-2 bg-[#03070d]/70 border border-gold/25 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-all"
           />
           {searchQuery && (
             <button
@@ -149,14 +149,14 @@ export default function CertificateOrderPage() {
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* SECTION 1: HIGHEST HONORS CEREMONY */}
         {showHonorsSection && filteredHonors.length > 0 && (
-          <div className="space-y-3">
-            <div className="pt-2 pb-1 flex items-center gap-2">
+          <div className="space-y-2">
+            <div className="pt-1 pb-1 flex items-center gap-2">
               <div className="h-[1px] flex-1 bg-gold/25"></div>
-              <span className="text-[11px] font-serif font-bold text-gold uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-gold/10 px-3.5 py-1 rounded-full border border-gold/30 gold-glow">
-                <Trophy className="h-3.5 w-3.5" /> Highest Honors Ceremony
+              <span className="text-[10px] font-serif font-bold text-gold uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-gold/10 px-3 py-0.5 rounded-full border border-gold/30 gold-glow">
+                <Trophy className="h-3 w-3" /> Highest Honors Ceremony
               </span>
               <div className="h-[1px] flex-1 bg-gold/25"></div>
             </div>
@@ -167,61 +167,66 @@ export default function CertificateOrderPage() {
               return (
                 <div
                   key={`honors-${grad.id}`}
-                  className="glass-card rounded-xl p-3.5 border border-gold/40 bg-gradient-to-r from-gold/10 via-[#03070d]/60 to-[#03070d]/60 gold-glow flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left relative"
+                  className="glass-card rounded-xl px-3 py-2 border border-gold/40 bg-gradient-to-r from-gold/10 via-[#03070d]/60 to-[#03070d]/60 gold-glow flex items-center justify-between gap-2.5 text-left relative"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     {/* Honors Rank Badge */}
-                    <div className="flex flex-col items-center justify-center min-w-10">
-                      <Trophy className="h-4 w-4 text-gold mb-0.5" />
-                      <span className="font-serif text-[10px] font-bold text-gold">
+                    <div className="flex flex-col items-center justify-center shrink-0 w-8">
+                      <Trophy className="h-3.5 w-3.5 text-gold mb-0.5" />
+                      <span className="font-serif text-[9px] font-bold text-gold">
                         {honorsRankStr}
                       </span>
                     </div>
 
-                    <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="md" />
+                    <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="sm" />
 
-                    <div>
-                      <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-                        <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light leading-snug">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light truncate">
                           {grad.fullName}
                         </h3>
 
-                        <span className="bg-gold-gradient text-navy-dark px-2 py-0.2 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5 shadow-[0_0_8px_rgba(212,175,55,0.3)]">
-                          <Sparkles className="h-2.5 w-2.5" /> Highest Honors
+                        <span className="bg-gold-gradient text-navy-dark px-1.5 py-0.2 rounded-full text-[8px] font-extrabold uppercase tracking-wider shrink-0">
+                          Highest Honors
+                        </span>
+
+                        <span className="text-[9px] text-gold/80 font-mono bg-gold/10 px-1.5 py-0.2 rounded border border-gold/20 shrink-0">
+                          Walk #{String(grad.order).padStart(3, '0')}
                         </span>
                       </div>
 
-                      <span className="text-[10px] text-gray-400 font-sans block mb-1">
-                        &ldquo;{grad.displayName}&rdquo; &bull; <strong className="text-gold/80">License Walk Order #{String(grad.order).padStart(3, '0')}</strong>
-                      </span>
-
-                      <div className="flex flex-wrap gap-1.5 text-[9px]">
-                        {grad.bourse && (
-                          <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1">
-                            📜 {grad.bourse}
-                          </span>
-                        )}
-                        {grad.masterProgram && (
-                          <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1.5">
-                            <FranceFlag className="w-3 h-2" /> {grad.masterProgram}
-                          </span>
-                        )}
-                      </div>
+                      {(grad.bourse || grad.masterProgram) && (
+                        <div className="flex flex-wrap gap-1 mt-0.5 text-[9px]">
+                          {grad.bourse && (
+                            <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-semibold inline-flex items-center gap-1">
+                              📜 {grad.bourse}
+                            </span>
+                          )}
+                          {grad.masterProgram && (
+                            <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-1.5 py-0.2 rounded font-semibold inline-flex items-center gap-1">
+                              <FranceFlag className="w-3 h-2" /> {grad.masterProgram}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 shrink-0 self-end sm:self-center">
+                  {/* Icon Actions */}
+                  <div className="flex items-center gap-1 shrink-0">
                     <Link
                       href={`/graduates/${grad.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
+                      title="View Profile"
+                      className="p-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark transition-all"
                     >
-                      <User className="h-3.5 w-3.5" /> Profile
+                      <User className="h-3.5 w-3.5" />
                     </Link>
                     <Link
                       href={`/messages?to=${grad.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
+                      title="Leave Message"
+                      className="p-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark transition-all"
                     >
-                      <MessageSquare className="h-3.5 w-3.5" /> Message
+                      <MessageSquare className="h-3.5 w-3.5" />
                     </Link>
                   </div>
                 </div>
@@ -230,13 +235,13 @@ export default function CertificateOrderPage() {
           </div>
         )}
 
-        {/* SECTION 2: LICENSE CERTIFICATE DISTRIBUTION (ALL 59 GRADUATES) */}
+        {/* SECTION 2: LICENSE CERTIFICATE DISTRIBUTION (ALL 58 GRADUATES) */}
         {showLicenseSection && filteredLicense.length > 0 && (
-          <div className="space-y-3">
-            <div className="pt-4 pb-1 flex items-center gap-2">
+          <div className="space-y-2">
+            <div className="pt-3 pb-1 flex items-center gap-2">
               <div className="h-[1px] flex-1 bg-gold/25"></div>
-              <span className="text-[11px] font-serif font-bold text-gray-200 uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-[#03070d] px-3.5 py-1 rounded-full border border-gold/20">
-                <GraduationCap className="h-3.5 w-3.5 text-gold" /> License Certificate Distribution (All Graduates #001 - #059)
+              <span className="text-[10px] font-serif font-bold text-gray-200 uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-[#03070d] px-3 py-0.5 rounded-full border border-gold/20">
+                <GraduationCap className="h-3 w-3 text-gold" /> License Certificate Distribution (All Graduates #001 - #058)
               </span>
               <div className="h-[1px] flex-1 bg-gold/25"></div>
             </div>
@@ -247,66 +252,67 @@ export default function CertificateOrderPage() {
               return (
                 <div
                   key={`license-${grad.id}`}
-                  className={`glass-card rounded-xl p-3.5 border transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left relative ${
+                  className={`glass-card rounded-xl px-3 py-2 border transition-all duration-300 flex items-center justify-between gap-2.5 text-left relative ${
                     isHighestHonors
                       ? 'border-gold/30 bg-gradient-to-r from-gold/5 via-[#03070d]/60 to-[#03070d]/60'
                       : 'border-gold/10 hover:border-gold/30'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     {/* Main License Stage Walk Order Badge */}
-                    <div className="flex flex-col items-center justify-center min-w-10">
+                    <div className="flex flex-col items-center justify-center shrink-0 w-8">
                       <span className="font-serif text-xs font-bold text-gold">
                         #{String(grad.order).padStart(3, '0')}
                       </span>
                     </div>
 
-                    <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="md" />
+                    <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="sm" />
 
-                    <div>
-                      <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-                        <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light leading-snug">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light truncate">
                           {grad.fullName}
                         </h3>
 
                         {isHighestHonors && (
-                          <span className="bg-gold-gradient text-navy-dark px-2 py-0.2 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5">
-                            <Sparkles className="h-2.5 w-2.5" /> Highest Honors
+                          <span className="bg-gold-gradient text-navy-dark px-1.5 py-0.2 rounded-full text-[8px] font-extrabold uppercase tracking-wider shrink-0">
+                            Highest Honors
                           </span>
                         )}
                       </div>
 
-                      <span className="text-[10px] text-gray-400 font-sans block mb-1">
-                        &ldquo;{grad.displayName}&rdquo;
-                      </span>
-
-                      <div className="flex flex-wrap gap-1.5 text-[9px]">
-                        {grad.bourse && (
-                          <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1">
-                            📜 {grad.bourse}
-                          </span>
-                        )}
-                        {grad.masterProgram && (
-                          <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1.5">
-                            <FranceFlag className="w-3 h-2" /> {grad.masterProgram}
-                          </span>
-                        )}
-                      </div>
+                      {(grad.bourse || grad.masterProgram) && (
+                        <div className="flex flex-wrap gap-1 mt-0.5 text-[9px]">
+                          {grad.bourse && (
+                            <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-semibold inline-flex items-center gap-1">
+                              📜 {grad.bourse}
+                            </span>
+                          )}
+                          {grad.masterProgram && (
+                            <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-1.5 py-0.2 rounded font-semibold inline-flex items-center gap-1">
+                              <FranceFlag className="w-3 h-2" /> {grad.masterProgram}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 shrink-0 self-end sm:self-center">
+                  {/* Icon Actions */}
+                  <div className="flex items-center gap-1 shrink-0">
                     <Link
                       href={`/graduates/${grad.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
+                      title="View Profile"
+                      className="p-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark transition-all"
                     >
-                      <User className="h-3.5 w-3.5" /> Profile
+                      <User className="h-3.5 w-3.5" />
                     </Link>
                     <Link
                       href={`/messages?to=${grad.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
+                      title="Leave Message"
+                      className="p-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark transition-all"
                     >
-                      <MessageSquare className="h-3.5 w-3.5" /> Message
+                      <MessageSquare className="h-3.5 w-3.5" />
                     </Link>
                   </div>
                 </div>
@@ -323,8 +329,8 @@ export default function CertificateOrderPage() {
         )}
       </div>
 
-      <div className="text-center text-[10px] text-gray-500 mt-8 font-sans">
-        Showing {licenseGraduates.length} License Certificate Graduates across two distribution stages.
+      <div className="text-center text-[10px] text-gray-500 mt-6 font-sans">
+        Showing 58 License Certificate Graduates across two distribution stages.
       </div>
     </div>
   );
