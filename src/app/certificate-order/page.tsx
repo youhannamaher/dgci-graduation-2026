@@ -7,40 +7,33 @@ import { StudentAvatar } from '@/components/StudentAvatar';
 import { FranceFlag } from '@/components/FranceFlag';
 import { Search, MessageSquare, User, HelpCircle, Trophy, Award, Sparkles, GraduationCap, CheckCircle2 } from 'lucide-react';
 
-const ITEMS_PER_PAGE = 60; // Show all or paginated cleanly
-
 export default function CertificateOrderPage() {
   const { graduates, isLoading } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'honors' | 'bourse' | 'master'>('all');
 
-  // Sorted graduates
-  const sortedGraduates = useMemo(() => {
+  // Sorted full graduates list for License Certificate Distribution (#001 - #059)
+  const licenseGraduates = useMemo(() => {
     return [...graduates].sort((a, b) => a.order - b.order);
   }, [graduates]);
 
+  // Highest Honors graduates list (for Section 1)
+  const honorsGraduates = useMemo(() => {
+    return licenseGraduates
+      .filter((g) => g.isHighestHonors || (g.honorsOrder !== undefined && g.honorsOrder !== null) || g.order <= 10)
+      .sort((a, b) => (a.honorsOrder || a.order) - (b.honorsOrder || b.order));
+  }, [licenseGraduates]);
+
   // Counts for filters
   const counts = useMemo(() => {
-    const honors = sortedGraduates.filter(g => g.order <= 10 || g.isHighestHonors).length;
-    const bourse = sortedGraduates.filter(g => g.bourse && g.bourse.trim() !== '').length;
-    const master = sortedGraduates.filter(g => g.masterProgram && g.masterProgram.trim() !== '').length;
-    return { all: sortedGraduates.length, honors, bourse, master };
-  }, [sortedGraduates]);
+    const honors = honorsGraduates.length;
+    const bourse = licenseGraduates.filter((g) => g.bourse && g.bourse.trim() !== '').length;
+    const master = licenseGraduates.filter((g) => g.masterProgram && g.masterProgram.trim() !== '').length;
+    return { all: licenseGraduates.length, honors, bourse, master };
+  }, [licenseGraduates, honorsGraduates]);
 
-  // Filtered list
-  const filteredGraduates = useMemo(() => {
-    let list = sortedGraduates;
-
-    // Filter tab
-    if (activeFilter === 'honors') {
-      list = list.filter(g => g.order <= 10 || g.isHighestHonors);
-    } else if (activeFilter === 'bourse') {
-      list = list.filter(g => g.bourse && g.bourse.trim() !== '');
-    } else if (activeFilter === 'master') {
-      list = list.filter(g => g.masterProgram && g.masterProgram.trim() !== '');
-    }
-
-    // Search query
+  // Search filter helper
+  const filterBySearch = (list: typeof graduates) => {
     if (!searchQuery.trim()) return list;
     const query = searchQuery.toLowerCase().trim();
     return list.filter(
@@ -48,10 +41,14 @@ export default function CertificateOrderPage() {
         g.fullName.toLowerCase().includes(query) ||
         g.displayName.toLowerCase().includes(query) ||
         `#${String(g.order).padStart(3, '0')}`.includes(query) ||
+        (g.honorsOrder && `#h-${String(g.honorsOrder).padStart(2, '0')}`.includes(query)) ||
         (g.bourse && g.bourse.toLowerCase().includes(query)) ||
         (g.masterProgram && g.masterProgram.toLowerCase().includes(query))
     );
-  }, [sortedGraduates, activeFilter, searchQuery]);
+  };
+
+  const filteredHonors = useMemo(() => filterBySearch(honorsGraduates), [honorsGraduates, searchQuery]);
+  const filteredLicense = useMemo(() => filterBySearch(licenseGraduates), [licenseGraduates, searchQuery]);
 
   if (isLoading) {
     return (
@@ -60,6 +57,9 @@ export default function CertificateOrderPage() {
       </div>
     );
   }
+
+  const showHonorsSection = activeFilter === 'all' || activeFilter === 'honors';
+  const showLicenseSection = activeFilter === 'all' || activeFilter === 'bourse' || activeFilter === 'master';
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 w-full animate-fadeIn">
@@ -72,7 +72,7 @@ export default function CertificateOrderPage() {
           Certificate Distribution Order
         </h1>
         <p className="text-gray-400 text-xs max-w-lg mx-auto leading-relaxed font-sans">
-          The first positions (<strong className="text-gold">#001 - #010</strong>) are awarded to the <strong className="text-gold">Highest Honors</strong> graduates, followed by alphabetical stage walk order (#011 - #059).
+          Celebrating our graduates across two distinct ceremony moments: The <strong className="text-gold">🏆 Highest Honors Ceremony</strong> and the <strong className="text-gold">🎓 License Certificate Distribution</strong> (All 59 Graduates).
         </p>
       </div>
 
@@ -88,7 +88,7 @@ export default function CertificateOrderPage() {
                 : 'text-gray-400 hover:text-gold hover:bg-gold/5'
             }`}
           >
-            All Graduates ({counts.all})
+            All License Certificates ({counts.all})
           </button>
           <button
             onClick={() => setActiveFilter('honors')}
@@ -129,7 +129,7 @@ export default function CertificateOrderPage() {
           </div>
           <input
             type="text"
-            placeholder="Search by name, order #, bourse, or master..."
+            placeholder="Search student by name, order #, bourse, or master..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="block w-full pl-10 pr-4 py-2.5 bg-[#03070d]/70 border border-gold/25 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-all"
@@ -145,92 +145,52 @@ export default function CertificateOrderPage() {
         </div>
       </div>
 
-      {/* Graduation List */}
-      {filteredGraduates.length === 0 ? (
-        <div className="glass-card rounded-xl p-8 text-center border-gold/10">
-          <HelpCircle className="h-8 w-8 text-gold mx-auto mb-2 opacity-60" />
-          <p className="text-gray-400 text-xs">No graduates match your selection.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filteredGraduates.map((grad, index) => {
-            const isHighestHonors = grad.order <= 10 || grad.isHighestHonors;
-            const showHonorsHeader = activeFilter === 'all' && index === 0 && isHighestHonors;
-            const showAlphabeticalHeader = activeFilter === 'all' && index === 10;
+      <div className="space-y-8">
+        {/* SECTION 1: HIGHEST HONORS CEREMONY */}
+        {showHonorsSection && filteredHonors.length > 0 && (
+          <div className="space-y-3">
+            <div className="pt-2 pb-1 flex items-center gap-2">
+              <div className="h-[1px] flex-1 bg-gold/25"></div>
+              <span className="text-[11px] font-serif font-bold text-gold uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-gold/10 px-3.5 py-1 rounded-full border border-gold/30 gold-glow">
+                <Trophy className="h-3.5 w-3.5" /> Highest Honors Ceremony
+              </span>
+              <div className="h-[1px] flex-1 bg-gold/25"></div>
+            </div>
 
-            return (
-              <React.Fragment key={grad.id}>
-                {/* Section Header: Highest Honors */}
-                {showHonorsHeader && (
-                  <div className="pt-2 pb-1 flex items-center gap-2">
-                    <div className="h-[1px] flex-1 bg-gold/25"></div>
-                    <span className="text-[11px] font-serif font-bold text-gold uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-gold/10 px-3 py-1 rounded-full border border-gold/30">
-                      <Trophy className="h-3.5 w-3.5" /> Highest Honors
-                    </span>
-                    <div className="h-[1px] flex-1 bg-gold/25"></div>
-                  </div>
-                )}
+            {filteredHonors.map((grad, idx) => {
+              const honorsRankStr = grad.honorsOrder ? `#H-${String(grad.honorsOrder).padStart(2, '0')}` : `#H-${String(idx + 1).padStart(2, '0')}`;
 
-                {/* Section Header: Alphabetical Graduates */}
-                {showAlphabeticalHeader && (
-                  <div className="pt-6 pb-1 flex items-center gap-2">
-                    <div className="h-[1px] flex-1 bg-gold/25"></div>
-                    <span className="text-[11px] font-serif font-bold text-gray-300 uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-[#03070d] px-3 py-1 rounded-full border border-gold/20">
-                      <GraduationCap className="h-3.5 w-3.5 text-gold/80" /> Graduates (Alphabetical Order)
-                    </span>
-                    <div className="h-[1px] flex-1 bg-gold/25"></div>
-                  </div>
-                )}
-
-                {/* Graduate Row Card */}
+              return (
                 <div
-                  className={`glass-card rounded-xl p-3.5 border transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left relative ${
-                    isHighestHonors
-                      ? 'border-gold/40 bg-gradient-to-r from-gold/10 via-[#03070d]/60 to-[#03070d]/60 gold-glow'
-                      : 'border-gold/10 hover:border-gold/30'
-                  }`}
+                  key={`honors-${grad.id}`}
+                  className="glass-card rounded-xl p-3.5 border border-gold/40 bg-gradient-to-r from-gold/10 via-[#03070d]/60 to-[#03070d]/60 gold-glow flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left relative"
                 >
-                  {/* Left Section: Order Badge, Avatar & Details */}
                   <div className="flex items-center gap-3">
-                    {/* Order Index Badge */}
+                    {/* Honors Rank Badge */}
                     <div className="flex flex-col items-center justify-center min-w-10">
-                      {isHighestHonors ? (
-                        <div className="flex flex-col items-center">
-                          <Trophy className="h-4 w-4 text-gold mb-0.5" />
-                          <span className="font-serif text-xs font-bold text-gold">
-                            #{String(grad.order).padStart(3, '0')}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="font-serif text-xs font-bold text-gold/70">
-                          #{String(grad.order).padStart(3, '0')}
-                        </span>
-                      )}
+                      <Trophy className="h-4 w-4 text-gold mb-0.5" />
+                      <span className="font-serif text-[10px] font-bold text-gold">
+                        {honorsRankStr}
+                      </span>
                     </div>
 
-                    {/* Avatar */}
                     <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="md" />
 
-                    {/* Name & Achievement Badges */}
                     <div>
                       <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
                         <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light leading-snug">
                           {grad.fullName}
                         </h3>
 
-                        {/* Highest Honor Pill */}
-                        {isHighestHonors && (
-                          <span className="bg-gold-gradient text-navy-dark px-2 py-0.2 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5 shadow-[0_0_8px_rgba(212,175,55,0.3)]">
-                            <Sparkles className="h-2.5 w-2.5" /> Highest Honors
-                          </span>
-                        )}
+                        <span className="bg-gold-gradient text-navy-dark px-2 py-0.2 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5 shadow-[0_0_8px_rgba(212,175,55,0.3)]">
+                          <Sparkles className="h-2.5 w-2.5" /> Highest Honors
+                        </span>
                       </div>
 
                       <span className="text-[10px] text-gray-400 font-sans block mb-1">
-                        &ldquo;{grad.displayName}&rdquo;
+                        &ldquo;{grad.displayName}&rdquo; &bull; <strong className="text-gold/80">License Walk Order #{String(grad.order).padStart(3, '0')}</strong>
                       </span>
 
-                      {/* Bourse & Master 2 Badges */}
                       <div className="flex flex-wrap gap-1.5 text-[9px]">
                         {grad.bourse && (
                           <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1">
@@ -246,33 +206,121 @@ export default function CertificateOrderPage() {
                     </div>
                   </div>
 
-                  {/* Right Section: Actions */}
                   <div className="flex items-center justify-end gap-2 shrink-0 self-end sm:self-center">
                     <Link
                       href={`/graduates/${grad.id}`}
                       className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
-                      title="View Profile"
                     >
                       <User className="h-3.5 w-3.5" /> Profile
                     </Link>
                     <Link
                       href={`/messages?to=${grad.id}`}
                       className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
-                      title="Leave Message"
                     >
                       <MessageSquare className="h-3.5 w-3.5" /> Message
                     </Link>
                   </div>
                 </div>
-              </React.Fragment>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
 
-      {/* Helper Footer */}
+        {/* SECTION 2: LICENSE CERTIFICATE DISTRIBUTION (ALL 59 GRADUATES) */}
+        {showLicenseSection && filteredLicense.length > 0 && (
+          <div className="space-y-3">
+            <div className="pt-4 pb-1 flex items-center gap-2">
+              <div className="h-[1px] flex-1 bg-gold/25"></div>
+              <span className="text-[11px] font-serif font-bold text-gray-200 uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-[#03070d] px-3.5 py-1 rounded-full border border-gold/20">
+                <GraduationCap className="h-3.5 w-3.5 text-gold" /> License Certificate Distribution (All Graduates #001 - #059)
+              </span>
+              <div className="h-[1px] flex-1 bg-gold/25"></div>
+            </div>
+
+            {filteredLicense.map((grad) => {
+              const isHighestHonors = grad.isHighestHonors || (grad.honorsOrder !== undefined && grad.honorsOrder !== null) || grad.order <= 10;
+
+              return (
+                <div
+                  key={`license-${grad.id}`}
+                  className={`glass-card rounded-xl p-3.5 border transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left relative ${
+                    isHighestHonors
+                      ? 'border-gold/30 bg-gradient-to-r from-gold/5 via-[#03070d]/60 to-[#03070d]/60'
+                      : 'border-gold/10 hover:border-gold/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Main License Stage Walk Order Badge */}
+                    <div className="flex flex-col items-center justify-center min-w-10">
+                      <span className="font-serif text-xs font-bold text-gold">
+                        #{String(grad.order).padStart(3, '0')}
+                      </span>
+                    </div>
+
+                    <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="md" />
+
+                    <div>
+                      <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                        <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light leading-snug">
+                          {grad.fullName}
+                        </h3>
+
+                        {isHighestHonors && (
+                          <span className="bg-gold-gradient text-navy-dark px-2 py-0.2 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5">
+                            <Sparkles className="h-2.5 w-2.5" /> Highest Honors
+                          </span>
+                        )}
+                      </div>
+
+                      <span className="text-[10px] text-gray-400 font-sans block mb-1">
+                        &ldquo;{grad.displayName}&rdquo;
+                      </span>
+
+                      <div className="flex flex-wrap gap-1.5 text-[9px]">
+                        {grad.bourse && (
+                          <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1">
+                            📜 {grad.bourse}
+                          </span>
+                        )}
+                        {grad.masterProgram && (
+                          <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1.5">
+                            <FranceFlag className="w-3 h-2" /> {grad.masterProgram}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 shrink-0 self-end sm:self-center">
+                    <Link
+                      href={`/graduates/${grad.id}`}
+                      className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
+                    >
+                      <User className="h-3.5 w-3.5" /> Profile
+                    </Link>
+                    <Link
+                      href={`/messages?to=${grad.id}`}
+                      className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" /> Message
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {filteredHonors.length === 0 && filteredLicense.length === 0 && (
+          <div className="glass-card rounded-xl p-8 text-center border-gold/10">
+            <HelpCircle className="h-8 w-8 text-gold mx-auto mb-2 opacity-60" />
+            <p className="text-gray-400 text-xs">No graduates match your search criteria.</p>
+          </div>
+        )}
+      </div>
+
       <div className="text-center text-[10px] text-gray-500 mt-8 font-sans">
-        Showing {filteredGraduates.length} of {sortedGraduates.length} graduates
+        Showing {licenseGraduates.length} License Certificate Graduates across two distribution stages.
       </div>
     </div>
   );

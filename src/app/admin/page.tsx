@@ -47,6 +47,8 @@ export default function AdminPage() {
   const [gradShowProfile, setGradShowProfile] = useState(true);
   const [gradBourse, setGradBourse] = useState('');
   const [gradMaster, setGradMaster] = useState('');
+  const [gradIsHighestHonors, setGradIsHighestHonors] = useState(false);
+  const [gradHonorsOrder, setGradHonorsOrder] = useState<number | ''>('');
 
   // CSV File Upload Refs
   const csvInputRef = useRef<HTMLInputElement>(null);
@@ -201,7 +203,9 @@ export default function AdminPage() {
       instagram: gradInstagram.trim(),
       showProfile: gradShowProfile,
       bourse: gradBourse.trim(),
-      masterProgram: gradMaster.trim()
+      masterProgram: gradMaster.trim(),
+      isHighestHonors: gradIsHighestHonors,
+      honorsOrder: gradHonorsOrder !== '' ? Number(gradHonorsOrder) : undefined
     };
 
     if (editingGradId) {
@@ -225,6 +229,8 @@ export default function AdminPage() {
     setGradShowProfile(true);
     setGradBourse('');
     setGradMaster('');
+    setGradIsHighestHonors(false);
+    setGradHonorsOrder('');
   };
 
   const handleEditGradClick = (g: Graduate) => {
@@ -239,6 +245,8 @@ export default function AdminPage() {
     setGradShowProfile(g.showProfile);
     setGradBourse(g.bourse || '');
     setGradMaster(g.masterProgram || '');
+    setGradIsHighestHonors(Boolean(g.isHighestHonors));
+    setGradHonorsOrder(g.honorsOrder !== undefined && g.honorsOrder !== null ? g.honorsOrder : '');
     setShowGradForm(true);
   };
 
@@ -254,6 +262,8 @@ export default function AdminPage() {
     setGradShowProfile(true);
     setGradBourse('');
     setGradMaster('');
+    setGradIsHighestHonors(false);
+    setGradHonorsOrder('');
     setShowGradForm(true);
   };
 
@@ -306,7 +316,8 @@ export default function AdminPage() {
           showProfile: row.showProfile !== undefined ? row.showProfile === 'true' || row.showProfile === true : (row.show_profile !== undefined ? row.show_profile === 'true' || row.show_profile === true : true),
           bourse: row.bourse || '',
           masterProgram: row.masterProgram || row.master_program || row.master || '',
-          isHighestHonors: row.isHighestHonors === 'true' || row.is_highest_honors === 'true' || row.honors === 'true'
+          isHighestHonors: row.isHighestHonors === 'true' || row.is_highest_honors === 'true' || row.honors === 'true',
+          honorsOrder: row.honorsOrder ? parseInt(row.honorsOrder) : (row.honors_order ? parseInt(row.honors_order) : undefined)
         });
       }
 
@@ -323,7 +334,7 @@ export default function AdminPage() {
 
   // CSV Export Graduates
   const handleCsvExport = () => {
-    const headers = ['order', 'fullName', 'displayName', 'photo', 'quote', 'linkedin', 'instagram', 'bourse', 'masterProgram', 'isHighestHonors', 'showProfile'];
+    const headers = ['order', 'fullName', 'displayName', 'photo', 'quote', 'linkedin', 'instagram', 'bourse', 'masterProgram', 'isHighestHonors', 'honorsOrder', 'showProfile'];
     const rows = [...graduates]
       .sort((a, b) => a.order - b.order)
       .map((g) => [
@@ -336,7 +347,8 @@ export default function AdminPage() {
         `"${(g.instagram || '').replace(/"/g, '""')}"`,
         `"${(g.bourse || '').replace(/"/g, '""')}"`,
         `"${(g.masterProgram || '').replace(/"/g, '""')}"`,
-        g.isHighestHonors || g.order <= 10 ? 'true' : 'false',
+        g.isHighestHonors ? 'true' : 'false',
+        g.honorsOrder || '',
         g.showProfile !== false ? 'true' : 'false'
       ].join(','));
 
@@ -1057,6 +1069,32 @@ export default function AdminPage() {
                           className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
                         />
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-gold/5 border border-gold/20 rounded-lg">
+                      <div className="flex items-center gap-2 pt-2">
+                        <input
+                          type="checkbox"
+                          id="gradIsHighestHonors"
+                          checked={gradIsHighestHonors}
+                          onChange={(e) => setGradIsHighestHonors(e.target.checked)}
+                          className="h-4 w-4 border-gold/20 bg-[#03070d] text-gold focus:ring-0"
+                        />
+                        <label htmlFor="gradIsHighestHonors" className="text-gold font-semibold text-xs">🏆 Is Highest Honors Recipient?</label>
+                      </div>
+
+                      {gradIsHighestHonors && (
+                        <div>
+                          <label className="block text-gold mb-1 text-xs font-semibold">Honors Ceremony Walk Rank (1..10)</label>
+                          <input
+                            type="number"
+                            placeholder="1"
+                            value={gradHonorsOrder}
+                            onChange={(e) => setGradHonorsOrder(e.target.value ? parseInt(e.target.value) : '')}
+                            className="w-full bg-[#03070d] border border-gold/40 rounded-lg p-2 text-white text-xs"
+                          />
+                        </div>
+                      )}
                     </div>
 
 

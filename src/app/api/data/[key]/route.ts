@@ -42,7 +42,9 @@ const mapGradDbToClient = (g: any) => ({
   instagram: g.instagram || '',
   showProfile: g.show_profile ?? true,
   bourse: g.bourse || '',
-  masterProgram: g.master_program || g.masterProgram || ''
+  masterProgram: g.master_program || g.masterProgram || '',
+  isHighestHonors: g.is_highest_honors ?? g.isHighestHonors ?? false,
+  honorsOrder: g.honors_order ?? g.honorsOrder ?? null
 });
 
 const mapGradClientToDb = (g: any) => ({
@@ -56,7 +58,9 @@ const mapGradClientToDb = (g: any) => ({
   instagram: g.instagram,
   show_profile: g.showProfile,
   bourse: g.bourse || '',
-  master_program: g.masterProgram || ''
+  master_program: g.masterProgram || '',
+  is_highest_honors: g.isHighestHonors ?? false,
+  honors_order: g.honorsOrder ?? null
 });
 
 const mapProgDbToClient = (p: any) => ({
@@ -146,7 +150,7 @@ export async function GET(
           const [info, prog, grads, msgs, pics, links] = await Promise.all([
             sql`SELECT url FROM media_links WHERE type = 'ceremony_info' LIMIT 1`,
             sql`SELECT id, item_order as "order", time, title, description, is_current as "isCurrent" FROM program_items ORDER BY item_order ASC`,
-            sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile", bourse, master_program as "masterProgram" FROM graduates ORDER BY order_number ASC`,
+            sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile", bourse, master_program as "masterProgram", is_highest_honors as "isHighestHonors", honors_order as "honorsOrder" FROM graduates ORDER BY order_number ASC`,
             sql`SELECT id, message, sender_name as "senderName", is_anonymous as "isAnonymous", target_type as "targetType", target_graduate_ids as "targetGraduateIds", relation, status, created_at as "createdAt" FROM messages ORDER BY created_at DESC`,
             sql`SELECT id, url, caption, uploaded_by as "uploadedBy", status, created_at as "createdAt" FROM photos ORDER BY created_at DESC`,
             sql`SELECT type, url FROM media_links`
@@ -201,7 +205,7 @@ export async function GET(
         }
 
         case 'graduates': {
-          const rows = await sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile", bourse, master_program as "masterProgram" FROM graduates ORDER BY order_number ASC`;
+          const rows = await sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile", bourse, master_program as "masterProgram", is_highest_honors as "isHighestHonors", honors_order as "honorsOrder" FROM graduates ORDER BY order_number ASC`;
           if (rows.length === 0) {
             return NextResponse.json(readLocalJson('graduates.json'));
           }
@@ -509,8 +513,8 @@ export async function POST(
         case 'graduates': {
           if (action === 'add') {
             await sql`
-              INSERT INTO graduates (id, order_number, full_name, display_name, photo_url, quote, linkedin, instagram, show_profile, bourse, master_program)
-              VALUES (${data.id}, ${data.order}, ${data.fullName}, ${data.displayName}, ${data.photo}, ${data.quote}, ${data.linkedin}, ${data.instagram}, ${data.showProfile}, ${data.bourse || ''}, ${data.masterProgram || ''})
+              INSERT INTO graduates (id, order_number, full_name, display_name, photo_url, quote, linkedin, instagram, show_profile, bourse, master_program, is_highest_honors, honors_order)
+              VALUES (${data.id}, ${data.order}, ${data.fullName}, ${data.displayName}, ${data.photo}, ${data.quote}, ${data.linkedin}, ${data.instagram}, ${data.showProfile}, ${data.bourse || ''}, ${data.masterProgram || ''}, ${data.isHighestHonors ?? false}, ${data.honorsOrder || null})
             `;
             return NextResponse.json({ success: true });
           }
@@ -527,6 +531,8 @@ export async function POST(
                 show_profile = ${fields.showProfile !== undefined ? fields.showProfile : sql`show_profile`},
                 bourse = ${fields.bourse !== undefined ? fields.bourse : sql`bourse`},
                 master_program = ${fields.masterProgram !== undefined ? fields.masterProgram : sql`master_program`},
+                is_highest_honors = ${fields.isHighestHonors !== undefined ? fields.isHighestHonors : sql`is_highest_honors`},
+                honors_order = ${fields.honorsOrder !== undefined ? fields.honorsOrder : sql`honors_order`},
                 order_number = ${fields.order !== undefined ? fields.order : sql`order_number`}
               WHERE id = ${id}
             `;
@@ -540,8 +546,8 @@ export async function POST(
             await sql`DELETE FROM graduates`;
             for (const g of list) {
               await sql`
-                INSERT INTO graduates (id, order_number, full_name, display_name, photo_url, quote, linkedin, instagram, show_profile, bourse, master_program)
-                VALUES (${g.id}, ${g.order}, ${g.fullName}, ${g.displayName}, ${g.photo}, ${g.quote}, ${g.linkedin}, ${g.instagram}, ${g.showProfile}, ${g.bourse || ''}, ${g.masterProgram || ''})
+                INSERT INTO graduates (id, order_number, full_name, display_name, photo_url, quote, linkedin, instagram, show_profile, bourse, master_program, is_highest_honors, honors_order)
+                VALUES (${g.id}, ${g.order}, ${g.fullName}, ${g.displayName}, ${g.photo}, ${g.quote}, ${g.linkedin}, ${g.instagram}, ${g.showProfile}, ${g.bourse || ''}, ${g.masterProgram || ''}, ${g.isHighestHonors ?? false}, ${g.honorsOrder || null})
               `;
             }
             return NextResponse.json({ success: true });

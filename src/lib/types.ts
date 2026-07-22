@@ -30,6 +30,7 @@ export interface Graduate {
   instagram: string;
   showProfile: boolean;
   isHighestHonors?: boolean;
+  honorsOrder?: number;
   bourse?: string;
   masterProgram?: string;
 }

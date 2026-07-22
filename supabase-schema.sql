@@ -14,12 +14,16 @@ CREATE TABLE IF NOT EXISTS graduates (
     show_profile BOOLEAN DEFAULT TRUE,
     bourse TEXT DEFAULT '',
     master_program TEXT DEFAULT '',
+    is_highest_honors BOOLEAN DEFAULT FALSE,
+    honors_order INTEGER,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
 -- Ensure columns exist if table was previously created
 ALTER TABLE graduates ADD COLUMN IF NOT EXISTS bourse TEXT DEFAULT '';
 ALTER TABLE graduates ADD COLUMN IF NOT EXISTS master_program TEXT DEFAULT '';
+ALTER TABLE graduates ADD COLUMN IF NOT EXISTS is_highest_honors BOOLEAN DEFAULT FALSE;
+ALTER TABLE graduates ADD COLUMN IF NOT EXISTS honors_order INTEGER;
 
 -- Enable RLS for graduates
 ALTER TABLE graduates ENABLE ROW LEVEL SECURITY;
