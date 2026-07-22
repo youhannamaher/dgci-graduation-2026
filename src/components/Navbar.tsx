@@ -106,7 +106,7 @@ export const Navbar = () => {
 
           <Link
             href="/messages"
-            className="ml-2 bg-crimson-gradient text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow-[0_0_12px_rgba(196,30,58,0.4)] hover:brightness-110 active:scale-95 transition-all inline-flex items-center gap-1.5"
+            className="ml-2 bg-gold-gradient text-navy-dark px-3.5 py-1.5 rounded-full text-xs font-bold shadow-[0_0_12px_rgba(212,175,55,0.3)] hover:brightness-110 active:scale-95 transition-all inline-flex items-center gap-1.5"
           >
             <MessageSquare className="h-3.5 w-3.5" /> Leave Message
           </Link>
@@ -116,7 +116,7 @@ export const Navbar = () => {
         <div className="flex items-center gap-2 lg:hidden">
           <Link
             href="/messages"
-            className="bg-crimson-gradient text-white px-2.5 py-1 rounded-full text-[10px] font-bold shadow-md inline-flex items-center gap-1"
+            className="bg-gold-gradient text-navy-dark px-2.5 py-1 rounded-full text-[10px] font-bold shadow-md inline-flex items-center gap-1"
           >
             <MessageSquare className="h-3 w-3" /> Message
           </Link>
