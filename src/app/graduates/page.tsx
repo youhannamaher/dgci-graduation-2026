@@ -95,69 +95,73 @@ export default function GraduatesPage() {
           <p className="text-gray-400 text-sm">No graduates found.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {displayedGraduates.map((grad) => {
             const isHighestHonors = grad.isHighestHonors === true || (typeof grad.honorsOrder === 'number' && grad.honorsOrder > 0);
 
             return (
               <div
                 key={grad.id}
-                className={`glass-card glass-card-hover rounded-xl p-4 border transition-all duration-300 flex flex-col items-center text-center relative group ${
+                className={`glass-card glass-card-hover rounded-xl p-3 border transition-all duration-300 flex flex-col items-center text-center relative group overflow-hidden w-full min-w-0 ${
                   isHighestHonors
                     ? 'border-gold/40 bg-gradient-to-b from-gold/10 via-[#03070d]/60 to-[#03070d]/80 gold-glow'
                     : 'border-gold/10 hover:border-gold/30'
                 }`}
               >
                 {/* Stage Walk Badge */}
-                <div className="absolute top-2.5 right-2.5 text-[9px] bg-gold/10 text-gold px-1.5 py-0.5 rounded border border-gold/20 font-serif font-semibold">
+                <div className="absolute top-2 right-2 text-[8px] bg-gold/10 text-gold px-1.5 py-0.5 rounded border border-gold/20 font-serif font-semibold shrink-0">
                   #{String(grad.order).padStart(3, '0')}
                 </div>
 
                 {/* Highest Honors Tag */}
                 {isHighestHonors && (
-                  <div className="absolute top-2.5 left-2.5 text-[8px] bg-gold-gradient text-navy-dark px-1.5 py-0.5 rounded font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5 shadow-[0_0_8px_rgba(212,175,55,0.3)]">
-                    <Trophy className="h-2.5 w-2.5" /> Highest Honors
+                  <div className="absolute top-2 left-2 text-[7px] bg-gold-gradient text-navy-dark px-1.5 py-0.5 rounded font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5 shadow-[0_0_8px_rgba(212,175,55,0.3)]">
+                    <Trophy className="h-2 w-2" /> Honors
                   </div>
                 )}
 
                 {/* Profile Avatar */}
-                <div className="my-3 mt-4">
-                  <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="lg" className="shadow-[0_4px_10px_rgba(0,0,0,0.4)]" />
+                <div className="mt-4 mb-2">
+                  <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="md" className="shadow-[0_4px_10px_rgba(0,0,0,0.4)]" />
                 </div>
 
                 {/* Name Details */}
-                <div className="flex-1 mb-3">
-                  <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light group-hover:text-gold transition-colors duration-200 line-clamp-1">
+                <div className="w-full min-w-0 flex-1 mb-2">
+                  <h3 className="font-serif font-bold text-xs text-gold-light group-hover:text-gold transition-colors duration-200 truncate w-full px-1">
                     {grad.fullName}
                   </h3>
-                  <p className="text-[10px] text-gray-400 mt-0.5">&ldquo;{grad.displayName}&rdquo;</p>
 
                   {/* Bourse & Master Pills */}
-                  <div className="flex flex-col gap-1 mt-2 text-[8px]">
-                    {grad.bourse && (
-                      <span className="bg-emerald-950/70 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-semibold truncate">
-                        📜 {grad.bourse}
-                      </span>
-                    )}
-                    {grad.masterProgram && (
-                      <span className="bg-blue-950/70 text-blue-200 border border-blue-500/30 px-1.5 py-0.5 rounded font-semibold truncate inline-flex items-center justify-center gap-1">
-                        <FranceFlag className="w-2.5 h-2" /> {grad.masterProgram}
-                      </span>
-                    )}
-                  </div>
+                  {(grad.bourse || grad.masterProgram) && (
+                    <div className="flex flex-col gap-1 mt-1.5 text-[8px] w-full min-w-0 overflow-hidden">
+                      {grad.bourse && (
+                        <div className="bg-emerald-950/70 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-semibold truncate w-full min-w-0 text-center">
+                          📜 {grad.bourse}
+                        </div>
+                      )}
+                      {grad.masterProgram && (
+                        <div className="bg-blue-950/70 text-blue-200 border border-blue-500/30 px-1.5 py-0.5 rounded font-semibold truncate w-full min-w-0 inline-flex items-center justify-center gap-1">
+                          <FranceFlag className="w-2.5 h-2 shrink-0" />
+                          <span className="truncate min-w-0">{grad.masterProgram}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions Grid */}
-                <div className="w-full grid grid-cols-2 gap-2 border-t border-gold/5 pt-3">
+                <div className="w-full grid grid-cols-2 gap-1.5 border-t border-gold/10 pt-2 shrink-0">
                   <Link
                     href={`/graduates/${grad.id}`}
-                    className="inline-flex justify-center items-center gap-1 py-1.5 rounded-lg bg-gold/5 hover:bg-gold-gradient text-gold hover:text-navy-dark border border-gold/15 text-[10px] font-semibold transition-all duration-200"
+                    title="View Profile"
+                    className="inline-flex justify-center items-center gap-1 py-1 rounded-lg bg-gold/10 hover:bg-gold-gradient text-gold hover:text-navy-dark border border-gold/20 text-[10px] font-bold transition-all duration-200"
                   >
                     <UserCircle className="h-3 w-3" /> Profile
                   </Link>
                   <Link
                     href={`/messages?to=${grad.id}`}
-                    className="inline-flex justify-center items-center gap-1 py-1.5 rounded-lg bg-gold/5 hover:bg-gold-gradient text-gold hover:text-navy-dark border border-gold/15 text-[10px] font-semibold transition-all duration-200"
+                    title="Leave Message"
+                    className="inline-flex justify-center items-center gap-1 py-1 rounded-lg bg-gold/10 hover:bg-gold-gradient text-gold hover:text-navy-dark border border-gold/20 text-[10px] font-bold transition-all duration-200"
                   >
                     <MessageSquare className="h-3 w-3" /> Msg
                   </Link>
