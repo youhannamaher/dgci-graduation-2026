@@ -16,8 +16,8 @@ export default function GraduatesPage() {
 
   // Filter and sort graduates
   const filteredGraduates = useMemo(() => {
-    // Only show graduates with showProfile = true
-    const visibleGrads = graduates.filter(g => g.showProfile);
+    // Show graduates unless showProfile is explicitly false
+    const visibleGrads = graduates.filter(g => g.showProfile !== false);
     const sorted = [...visibleGrads].sort((a, b) => a.order - b.order);
     
     if (!searchQuery.trim()) return sorted;

@@ -188,20 +188,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let galleryData = combined.photos;
       let mediaData = combined.mediaLinks;
 
-      // Update React state directly with live responses!
-      setJourney(journeyData);
-      setCeremonyInfo(infoData);
-      setProgram(progData);
-      setGraduates(gradsData);
-      setMessages(msgData);
-      setPhotos(galleryData);
-      setMediaLinks(mediaData);
+      // Update React state directly with live responses with fallback protection!
+      setJourney(journeyData || (journeyTemplate as JourneyItem[]));
+      setCeremonyInfo(infoData || (infoTemplate as CeremonyInfo));
+      setProgram(Array.isArray(progData) && progData.length > 0 ? progData : (progTemplate as ProgramItem[]));
+      
+      const normalizedGrads = Array.isArray(gradsData) && gradsData.length > 0
+        ? gradsData.map((g: any) => ({ ...g, showProfile: g.showProfile !== false }))
+        : (gradsTemplate as Graduate[]);
+      setGraduates(normalizedGrads);
+
+      setMessages(Array.isArray(msgData) ? msgData : (msgTemplate as Message[]));
+      setPhotos(Array.isArray(galleryData) ? galleryData : (galleryTemplate as Photo[]));
+      setMediaLinks(mediaData || (mediaTemplate as MediaLinks));
 
       // Cache fresh live database content in local storage
       if (source === 'supabase' || source === 'sql') {
         saveLocal('dgci_ceremony_info', infoData);
         saveLocal('dgci_program', progData);
-        saveLocal('dgci_graduates', gradsData);
+        saveLocal('dgci_graduates', normalizedGrads);
         saveLocal('dgci_messages', msgData);
         saveLocal('dgci_photos', galleryData);
         saveLocal('dgci_media_links', mediaData);

@@ -201,11 +201,11 @@ export async function GET(
         }
 
         case 'graduates': {
-          const rows = await sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile" FROM graduates ORDER BY order_number ASC`;
+          const rows = await sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile", bourse, master_program as "masterProgram" FROM graduates ORDER BY order_number ASC`;
           if (rows.length === 0) {
             return NextResponse.json(readLocalJson('graduates.json'));
           }
-          return NextResponse.json(rows.map((g: any) => ({ ...g, showProfile: g.showProfile ?? true })));
+          return NextResponse.json(rows.map((g: any) => ({ ...g, showProfile: g.showProfile !== false })));
         }
 
         case 'messages': {
