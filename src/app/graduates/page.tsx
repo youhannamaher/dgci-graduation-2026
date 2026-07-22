@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useData } from '@/context/DataContext';
 import { StudentAvatar } from '@/components/StudentAvatar';
+import { FranceFlag } from '@/components/FranceFlag';
 import { Search, MessageSquare, UserCircle, HelpCircle, Trophy, Sparkles } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 24;
@@ -96,13 +97,13 @@ export default function GraduatesPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {displayedGraduates.map((grad) => {
-            const isTopTen = grad.order <= 10 || grad.isHighestHonors;
+            const isHighestHonors = grad.order <= 10 || grad.isHighestHonors;
 
             return (
               <div
                 key={grad.id}
                 className={`glass-card glass-card-hover rounded-xl p-4 border transition-all duration-300 flex flex-col items-center text-center relative group ${
-                  isTopTen
+                  isHighestHonors
                     ? 'border-gold/40 bg-gradient-to-b from-gold/10 via-[#03070d]/60 to-[#03070d]/80 gold-glow'
                     : 'border-gold/10 hover:border-gold/30'
                 }`}
@@ -112,10 +113,10 @@ export default function GraduatesPage() {
                   #{String(grad.order).padStart(3, '0')}
                 </div>
 
-                {/* Top 10 Honors Tag */}
-                {isTopTen && (
+                {/* Highest Honors Tag */}
+                {isHighestHonors && (
                   <div className="absolute top-2.5 left-2.5 text-[8px] bg-gold-gradient text-navy-dark px-1.5 py-0.5 rounded font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5 shadow-[0_0_8px_rgba(212,175,55,0.3)]">
-                    <Trophy className="h-2.5 w-2.5" /> Top 10
+                    <Trophy className="h-2.5 w-2.5" /> Highest Honors
                   </div>
                 )}
 
@@ -139,8 +140,8 @@ export default function GraduatesPage() {
                       </span>
                     )}
                     {grad.masterProgram && (
-                      <span className="bg-blue-950/70 text-blue-200 border border-blue-500/30 px-1.5 py-0.5 rounded font-semibold truncate">
-                        🇫🇷 {grad.masterProgram}
+                      <span className="bg-blue-950/70 text-blue-200 border border-blue-500/30 px-1.5 py-0.5 rounded font-semibold truncate inline-flex items-center justify-center gap-1">
+                        <FranceFlag className="w-2.5 h-2" /> {grad.masterProgram}
                       </span>
                     )}
                   </div>

@@ -12,8 +12,14 @@ CREATE TABLE IF NOT EXISTS graduates (
     linkedin TEXT DEFAULT '',
     instagram TEXT DEFAULT '',
     show_profile BOOLEAN DEFAULT TRUE,
+    bourse TEXT DEFAULT '',
+    master_program TEXT DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
+
+-- Ensure columns exist if table was previously created
+ALTER TABLE graduates ADD COLUMN IF NOT EXISTS bourse TEXT DEFAULT '';
+ALTER TABLE graduates ADD COLUMN IF NOT EXISTS master_program TEXT DEFAULT '';
 
 -- Enable RLS for graduates
 ALTER TABLE graduates ENABLE ROW LEVEL SECURITY;

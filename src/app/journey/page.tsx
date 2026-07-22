@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { useData } from '@/context/DataContext';
+import { FranceFlag } from '@/components/FranceFlag';
 import { BookOpen, Calendar, Milestone, Trophy, Award, GraduationCap, ArrowRight } from 'lucide-react';
 
 export default function JourneyPage() {
@@ -53,7 +54,7 @@ export default function JourneyPage() {
           </span>
         </div>
 
-        {/* Top 10 Honors */}
+        {/* Highest Honors */}
         <div className="glass-card rounded-2xl p-4 text-center border-gold/30 gold-glow flex flex-col justify-center items-center">
           <Trophy className="h-6 w-6 text-gold mb-1" />
           <span className="text-2xl md:text-3xl font-serif font-extrabold text-gold">
@@ -66,7 +67,7 @@ export default function JourneyPage() {
 
         {/* Master 2 in France */}
         <div className="glass-card rounded-2xl p-4 text-center border-blue-500/30 flex flex-col justify-center items-center">
-          <span className="text-xl mb-1">🇫🇷</span>
+          <FranceFlag className="w-5 h-3.5 mb-1" />
           <span className="text-2xl md:text-3xl font-serif font-extrabold text-blue-300">
             {stats.masterCount}
           </span>
@@ -99,17 +100,17 @@ export default function JourneyPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Trophy className="h-4 w-4 text-gold" />
-                <h4 className="font-serif font-bold text-xs text-gold-light">Top 10 Highest Honors</h4>
+                <h4 className="font-serif font-bold text-xs text-gold-light">Highest Honors</h4>
               </div>
               <p className="text-[11px] text-gray-300 leading-relaxed">
-                Awarded to the top 10 ranked graduates with highest cumulative GPAs across the DGCI program.
+                Awarded to the graduates with highest cumulative GPAs across the DGCI program.
               </p>
             </div>
             <Link
               href="/certificate-order?filter=honors"
               className="mt-4 text-[10px] font-bold text-gold hover:underline inline-flex items-center gap-1"
             >
-              View Top 10 Honors <ArrowRight className="h-3 w-3" />
+              View Highest Honors <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
 
@@ -117,11 +118,11 @@ export default function JourneyPage() {
           <div className="glass-card rounded-xl p-5 border border-blue-500/25 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm">🇫🇷</span>
+                <FranceFlag className="w-4 h-3" />
                 <h4 className="font-serif font-bold text-xs text-blue-200">Master 2 in France</h4>
               </div>
               <p className="text-[11px] text-gray-300 leading-relaxed">
-                9 graduates accepted directly into Master 2 programs at French universities including IAE Poitiers.
+                Graduates accepted directly into Master 2 programs at French universities including IAE Poitiers.
               </p>
             </div>
             <Link

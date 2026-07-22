@@ -509,8 +509,8 @@ export async function POST(
         case 'graduates': {
           if (action === 'add') {
             await sql`
-              INSERT INTO graduates (id, order_number, full_name, display_name, photo_url, quote, linkedin, instagram, show_profile)
-              VALUES (${data.id}, ${data.order}, ${data.fullName}, ${data.displayName}, ${data.photo}, ${data.quote}, ${data.linkedin}, ${data.instagram}, ${data.showProfile})
+              INSERT INTO graduates (id, order_number, full_name, display_name, photo_url, quote, linkedin, instagram, show_profile, bourse, master_program)
+              VALUES (${data.id}, ${data.order}, ${data.fullName}, ${data.displayName}, ${data.photo}, ${data.quote}, ${data.linkedin}, ${data.instagram}, ${data.showProfile}, ${data.bourse || ''}, ${data.masterProgram || ''})
             `;
             return NextResponse.json({ success: true });
           }
@@ -525,6 +525,8 @@ export async function POST(
                 linkedin = ${fields.linkedin !== undefined ? fields.linkedin : sql`linkedin`},
                 instagram = ${fields.instagram !== undefined ? fields.instagram : sql`instagram`},
                 show_profile = ${fields.showProfile !== undefined ? fields.showProfile : sql`show_profile`},
+                bourse = ${fields.bourse !== undefined ? fields.bourse : sql`bourse`},
+                master_program = ${fields.masterProgram !== undefined ? fields.masterProgram : sql`master_program`},
                 order_number = ${fields.order !== undefined ? fields.order : sql`order_number`}
               WHERE id = ${id}
             `;
@@ -538,8 +540,8 @@ export async function POST(
             await sql`DELETE FROM graduates`;
             for (const g of list) {
               await sql`
-                INSERT INTO graduates (id, order_number, full_name, display_name, photo_url, quote, linkedin, instagram, show_profile)
-                VALUES (${g.id}, ${g.order}, ${g.fullName}, ${g.displayName}, ${g.photo}, ${g.quote}, ${g.linkedin}, ${g.instagram}, ${g.showProfile})
+                INSERT INTO graduates (id, order_number, full_name, display_name, photo_url, quote, linkedin, instagram, show_profile, bourse, master_program)
+                VALUES (${g.id}, ${g.order}, ${g.fullName}, ${g.displayName}, ${g.photo}, ${g.quote}, ${g.linkedin}, ${g.instagram}, ${g.showProfile}, ${g.bourse || ''}, ${g.masterProgram || ''})
               `;
             }
             return NextResponse.json({ success: true });

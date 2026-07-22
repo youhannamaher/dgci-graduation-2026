@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/context/DataContext';
 import { StudentAvatar } from '@/components/StudentAvatar';
+import { FranceFlag } from '@/components/FranceFlag';
 import { ArrowLeft, MessageSquare, Quote, Calendar, AlertTriangle, Trophy, Sparkles, Award } from 'lucide-react';
 
 
@@ -104,7 +105,7 @@ export default function GraduateProfilePage({ params }: ProfileParams) {
           <div className="flex flex-wrap justify-center gap-2 my-4">
             {(graduate.order <= 10 || graduate.isHighestHonors) && (
               <div className="bg-gold-gradient text-navy-dark px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-[0_0_12px_rgba(212,175,55,0.4)]">
-                <Trophy className="h-3.5 w-3.5" /> Highest Honors (Top 10)
+                <Trophy className="h-3.5 w-3.5" /> Highest Honors
               </div>
             )}
             {graduate.bourse && (
@@ -114,7 +115,7 @@ export default function GraduateProfilePage({ params }: ProfileParams) {
             )}
             {graduate.masterProgram && (
               <div className="bg-blue-950/80 text-blue-200 border border-blue-500/40 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-                🇫🇷 {graduate.masterProgram}
+                <FranceFlag className="w-3.5 h-2.5" /> {graduate.masterProgram}
               </div>
             )}
           </div>

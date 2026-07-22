@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useData } from '@/context/DataContext';
 import { StudentAvatar } from '@/components/StudentAvatar';
+import { FranceFlag } from '@/components/FranceFlag';
 import { Search, MessageSquare, User, HelpCircle, Trophy, Award, Sparkles, GraduationCap, CheckCircle2 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 60; // Show all or paginated cleanly
@@ -71,7 +72,7 @@ export default function CertificateOrderPage() {
           Certificate Distribution Order
         </h1>
         <p className="text-gray-400 text-xs max-w-lg mx-auto leading-relaxed font-sans">
-          The first 10 positions (<strong className="text-gold">#001 - #010</strong>) are awarded to the <strong className="text-gold">Top 10 Highest Honors</strong> graduates, followed by alphabetical stage walk order (#011 - #059).
+          The first positions (<strong className="text-gold">#001 - #010</strong>) are awarded to the <strong className="text-gold">Highest Honors</strong> graduates, followed by alphabetical stage walk order (#011 - #059).
         </p>
       </div>
 
@@ -97,7 +98,7 @@ export default function CertificateOrderPage() {
                 : 'text-gray-400 hover:text-gold hover:bg-gold/5'
             }`}
           >
-            <Trophy className="h-3 w-3" /> Top 10 Honors ({counts.honors})
+            <Trophy className="h-3 w-3" /> Highest Honors ({counts.honors})
           </button>
           <button
             onClick={() => setActiveFilter('bourse')}
@@ -111,13 +112,13 @@ export default function CertificateOrderPage() {
           </button>
           <button
             onClick={() => setActiveFilter('master')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all inline-flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all inline-flex items-center gap-1.5 ${
               activeFilter === 'master'
                 ? 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]'
                 : 'text-gray-400 hover:text-blue-400 hover:bg-blue-500/10'
             }`}
           >
-            🇫🇷 M2 France ({counts.master})
+            <FranceFlag className="w-3.5 h-2.5" /> M2 France ({counts.master})
           </button>
         </div>
 
@@ -153,18 +154,18 @@ export default function CertificateOrderPage() {
       ) : (
         <div className="space-y-3">
           {filteredGraduates.map((grad, index) => {
-            const isTopTen = grad.order <= 10 || grad.isHighestHonors;
-            const showHonorsHeader = activeFilter === 'all' && index === 0 && isTopTen;
+            const isHighestHonors = grad.order <= 10 || grad.isHighestHonors;
+            const showHonorsHeader = activeFilter === 'all' && index === 0 && isHighestHonors;
             const showAlphabeticalHeader = activeFilter === 'all' && index === 10;
 
             return (
               <React.Fragment key={grad.id}>
-                {/* Section Header: Top 10 Honors */}
+                {/* Section Header: Highest Honors */}
                 {showHonorsHeader && (
                   <div className="pt-2 pb-1 flex items-center gap-2">
                     <div className="h-[1px] flex-1 bg-gold/25"></div>
                     <span className="text-[11px] font-serif font-bold text-gold uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-gold/10 px-3 py-1 rounded-full border border-gold/30">
-                      <Trophy className="h-3.5 w-3.5" /> Top 10 Highest Honors
+                      <Trophy className="h-3.5 w-3.5" /> Highest Honors
                     </span>
                     <div className="h-[1px] flex-1 bg-gold/25"></div>
                   </div>
@@ -184,7 +185,7 @@ export default function CertificateOrderPage() {
                 {/* Graduate Row Card */}
                 <div
                   className={`glass-card rounded-xl p-3.5 border transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left relative ${
-                    isTopTen
+                    isHighestHonors
                       ? 'border-gold/40 bg-gradient-to-r from-gold/10 via-[#03070d]/60 to-[#03070d]/60 gold-glow'
                       : 'border-gold/10 hover:border-gold/30'
                   }`}
@@ -193,7 +194,7 @@ export default function CertificateOrderPage() {
                   <div className="flex items-center gap-3">
                     {/* Order Index Badge */}
                     <div className="flex flex-col items-center justify-center min-w-10">
-                      {isTopTen ? (
+                      {isHighestHonors ? (
                         <div className="flex flex-col items-center">
                           <Trophy className="h-4 w-4 text-gold mb-0.5" />
                           <span className="font-serif text-xs font-bold text-gold">
@@ -217,10 +218,10 @@ export default function CertificateOrderPage() {
                           {grad.fullName}
                         </h3>
 
-                        {/* Top 10 Honor Pill */}
-                        {isTopTen && (
+                        {/* Highest Honor Pill */}
+                        {isHighestHonors && (
                           <span className="bg-gold-gradient text-navy-dark px-2 py-0.2 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5 shadow-[0_0_8px_rgba(212,175,55,0.3)]">
-                            <Sparkles className="h-2.5 w-2.5" /> Top 10 Honors
+                            <Sparkles className="h-2.5 w-2.5" /> Highest Honors
                           </span>
                         )}
                       </div>
@@ -237,8 +238,8 @@ export default function CertificateOrderPage() {
                           </span>
                         )}
                         {grad.masterProgram && (
-                          <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1">
-                            🇫🇷 {grad.masterProgram}
+                          <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1.5">
+                            <FranceFlag className="w-3 h-2" /> {grad.masterProgram}
                           </span>
                         )}
                       </div>
