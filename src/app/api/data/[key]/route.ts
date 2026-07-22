@@ -33,14 +33,14 @@ function withTimeout<T>(promise: PromiseLike<T>, ms = 4000): Promise<T> {
 // --- DTO MAPPERS FOR SUPABASE (snake_case) TO CLIENT (camelCase) ---
 const mapGradDbToClient = (g: any) => ({
   id: g.id,
-  order: g.order_number,
-  fullName: g.full_name,
-  displayName: g.display_name,
-  photo: g.photo_url || '',
+  order: g.order_number || g.order,
+  fullName: g.full_name || g.fullName,
+  displayName: g.display_name || g.displayName,
+  photo: g.photo_url || g.photo || '',
   quote: g.quote || '',
   linkedin: g.linkedin || '',
   instagram: g.instagram || '',
-  showProfile: g.show_profile ?? true,
+  showProfile: true,
   bourse: g.bourse || '',
   masterProgram: g.master_program || g.masterProgram || '',
   isHighestHonors: g.is_highest_honors ?? g.isHighestHonors ?? false,
@@ -56,7 +56,7 @@ const mapGradClientToDb = (g: any) => ({
   quote: g.quote,
   linkedin: g.linkedin,
   instagram: g.instagram,
-  show_profile: g.showProfile,
+  show_profile: true,
   bourse: g.bourse || '',
   master_program: g.masterProgram || '',
   is_highest_honors: g.isHighestHonors ?? false,
@@ -158,7 +158,7 @@ export async function GET(
 
           const infoData = info.length > 0 ? JSON.parse(info[0].url) : readLocalJson('ceremony-info.json');
           const progData = prog.length > 0 ? prog : readLocalJson('program.json');
-          const gradsData = grads.length > 0 ? grads.map((g: any) => ({ ...g, showProfile: g.showProfile ?? true })) : readLocalJson('graduates.json');
+          const gradsData = grads.length > 0 ? grads.map((g: any) => ({ ...g, showProfile: true })) : readLocalJson('graduates.json');
           const msgsData = msgs.length > 0 ? msgs.map((m: any) => ({
             ...m,
             targetGraduateIds: typeof m.targetGraduateIds === 'string' ? JSON.parse(m.targetGraduateIds) : (Array.isArray(m.targetGraduateIds) ? m.targetGraduateIds : [])
@@ -209,7 +209,7 @@ export async function GET(
           if (rows.length === 0) {
             return NextResponse.json(readLocalJson('graduates.json'));
           }
-          return NextResponse.json(rows.map((g: any) => ({ ...g, showProfile: g.showProfile !== false })));
+          return NextResponse.json(rows.map((g: any) => ({ ...g, showProfile: true })));
         }
 
         case 'messages': {
