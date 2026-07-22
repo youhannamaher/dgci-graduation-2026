@@ -74,9 +74,11 @@ export const Navbar = () => {
       {/* Main Nav Items */}
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Title */}
-        <Link href="/" className="flex items-center gap-2">
-          <GraduationCap className="h-5 w-5 text-gold" />
-          <span className="font-serif font-bold text-sm md:text-base tracking-wider text-gold-light">
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="p-1 rounded-lg bg-gold/10 border border-gold/30 text-gold group-hover:bg-gold group-hover:text-navy-dark transition-all">
+            <GraduationCap className="h-4 w-4" />
+          </div>
+          <span className="font-serif font-extrabold text-sm md:text-base tracking-wider text-gold-light">
             DGCI 2026
           </span>
         </Link>
@@ -92,8 +94,8 @@ export const Navbar = () => {
                 href={item.path}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all duration-300 ${
                   Active
-                    ? 'bg-gold-gradient text-navy-dark shadow-[0_0_10px_rgba(212,175,55,0.25)] font-bold'
-                    : 'text-gray-300 hover:text-gold hover:bg-gold/5'
+                    ? 'bg-gold-gradient text-navy-dark shadow-[0_0_12px_rgba(212,175,55,0.3)] font-bold'
+                    : 'text-gray-200 hover:text-gold hover:bg-gold/5'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -101,16 +103,31 @@ export const Navbar = () => {
               </Link>
             );
           })}
+
+          <Link
+            href="/messages"
+            className="ml-2 bg-crimson-gradient text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow-[0_0_12px_rgba(196,30,58,0.4)] hover:brightness-110 active:scale-95 transition-all inline-flex items-center gap-1.5"
+          >
+            <MessageSquare className="h-3.5 w-3.5" /> Leave Message
+          </Link>
         </nav>
 
-        {/* Mobile menu button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="lg:hidden p-1.5 rounded-md text-gold hover:bg-gold/10 transition-colors focus:outline-none"
-          aria-label="Toggle navigation menu"
-        >
-          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        {/* Mobile Action & Menu button */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <Link
+            href="/messages"
+            className="bg-crimson-gradient text-white px-2.5 py-1 rounded-full text-[10px] font-bold shadow-md inline-flex items-center gap-1"
+          >
+            <MessageSquare className="h-3 w-3" /> Message
+          </Link>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-1.5 rounded-md text-gold hover:bg-gold/10 transition-colors focus:outline-none"
+            aria-label="Toggle navigation menu"
+          >
+            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Navigation Dropdown */}
