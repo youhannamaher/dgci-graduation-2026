@@ -278,13 +278,12 @@ export default function AdminPage() {
         return;
       }
 
-      // headers: order,fullName,displayName,photo,quote,linkedin,instagram
+      // headers line
       const headers = lines[0].split(',').map((h) => h.trim().replace(/^["']|["']$/g, ''));
       const parsedGrads: Graduate[] = [];
 
       for (let i = 1; i < lines.length; i++) {
-        // Simple comma split (handling basic CSV formats)
-        // A complex CSV parser would handle escaped commas, but for class templates this is fine.
+        // Handle CSV quoted strings containing commas
         const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map((v) => v.trim().replace(/^["']|["']$/g, ''));
         
         const row: any = {};
@@ -292,19 +291,22 @@ export default function AdminPage() {
           row[header] = values[idx] || '';
         });
 
-        const name = row.fullName || row.fullName || '';
+        const name = row.fullName || row.full_name || '';
         if (!name) continue;
 
         parsedGrads.push({
-          id: slugify(name),
-          order: parseInt(row.order) || i,
+          id: row.id || slugify(name),
+          order: parseInt(row.order || row.order_number) || i,
           fullName: name,
-          displayName: row.displayName || name.split(' ')[0],
-          photo: row.photo || `/graduates/student-${String(i).padStart(3, '0')}.jpg`,
+          displayName: row.displayName || row.display_name || name.split(' ')[0],
+          photo: row.photo || row.photo_url || `/graduates/student-${String(i).padStart(3, '0')}.jpg`,
           quote: row.quote || '',
           linkedin: row.linkedin || '',
           instagram: row.instagram || '',
-          showProfile: true
+          showProfile: row.showProfile !== undefined ? row.showProfile === 'true' || row.showProfile === true : (row.show_profile !== undefined ? row.show_profile === 'true' || row.show_profile === true : true),
+          bourse: row.bourse || '',
+          masterProgram: row.masterProgram || row.master_program || row.master || '',
+          isHighestHonors: row.isHighestHonors === 'true' || row.is_highest_honors === 'true' || row.honors === 'true'
         });
       }
 
@@ -312,7 +314,7 @@ export default function AdminPage() {
         const success = await importGraduatesCsv(parsedGrads);
         if (success) {
           triggerSaveNotification();
-          alert(`Successfully imported ${parsedGrads.length} graduates!`);
+          alert(`Successfully imported ${parsedGrads.length} graduates with all distinction fields!`);
         }
       }
     };
@@ -321,24 +323,28 @@ export default function AdminPage() {
 
   // CSV Export Graduates
   const handleCsvExport = () => {
-    const headers = ['order', 'fullName', 'displayName', 'photo', 'quote', 'linkedin', 'instagram'];
+    const headers = ['order', 'fullName', 'displayName', 'photo', 'quote', 'linkedin', 'instagram', 'bourse', 'masterProgram', 'isHighestHonors', 'showProfile'];
     const rows = [...graduates]
       .sort((a, b) => a.order - b.order)
       .map((g) => [
         g.order,
-        `"${g.fullName.replace(/"/g, '""')}"`,
-        `"${g.displayName.replace(/"/g, '""')}"`,
-        `"${g.photo.replace(/"/g, '""')}"`,
-        `"${g.quote.replace(/"/g, '""')}"`,
-        `"${g.linkedin.replace(/"/g, '""')}"`,
-        `"${g.instagram.replace(/"/g, '""')}"`
+        `"${(g.fullName || '').replace(/"/g, '""')}"`,
+        `"${(g.displayName || '').replace(/"/g, '""')}"`,
+        `"${(g.photo || '').replace(/"/g, '""')}"`,
+        `"${(g.quote || '').replace(/"/g, '""')}"`,
+        `"${(g.linkedin || '').replace(/"/g, '""')}"`,
+        `"${(g.instagram || '').replace(/"/g, '""')}"`,
+        `"${(g.bourse || '').replace(/"/g, '""')}"`,
+        `"${(g.masterProgram || '').replace(/"/g, '""')}"`,
+        g.isHighestHonors || g.order <= 10 ? 'true' : 'false',
+        g.showProfile !== false ? 'true' : 'false'
       ].join(','));
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'graduates_list_export.csv');
+    link.setAttribute('download', 'dgci_2026_graduates_export.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
