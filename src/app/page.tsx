@@ -37,11 +37,11 @@ export default function HomePage() {
 
   const actionItems = [
     { name: 'Ceremony Program', desc: 'Schedule & timeline of events', path: '/program', icon: CalendarDays, border: 'border-gold/20 hover:border-gold/60' },
-    { name: 'Certificate Order', desc: 'Find students certificate order', path: '/certificate-order', icon: Award, border: 'border-gold/20 hover:border-gold/60' },
-    { name: 'Graduate Wall', desc: 'Browse graduates and stage walk order', path: '/graduates', icon: Users, border: 'border-gold/20 hover:border-gold/60' },
-    { name: 'Messages & Memories', desc: 'Congratulate the graduates', path: '/messages', icon: MessageSquare, border: 'border-gold/20 hover:border-gold/60' },
+    { name: 'Certificate Order', desc: 'Find students certificate order & honors', path: '/certificate-order', icon: Award, border: 'border-gold/20 hover:border-gold/60' },
+    { name: 'Graduate Profiles', desc: 'Browse graduate profiles & class details', path: '/graduates', icon: Users, border: 'border-gold/20 hover:border-gold/60' },
+    { name: 'Messages & Memories', desc: 'Leave a message for your graduate', path: '/messages', icon: MessageSquare, border: 'border-gold/20 hover:border-gold/60' },
     { name: 'Photo & Video Hub', desc: 'Upload and view ceremony media', path: '/media', icon: ImageIcon, border: 'border-gold/20 hover:border-gold/60' },
-    { name: 'Class Journey', desc: '2022 - 2026 milestones timeline', path: '/journey', icon: BookOpen, border: 'border-gold/20 hover:border-gold/60' },
+    { name: 'Class Achievements & Journey', desc: 'Scholarships, Master 2 in France & honors', path: '/journey', icon: BookOpen, border: 'border-gold/20 hover:border-gold/60' },
   ];
 
   return (

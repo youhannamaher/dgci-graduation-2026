@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/context/DataContext';
 import { StudentAvatar } from '@/components/StudentAvatar';
-import { ArrowLeft, MessageSquare, Quote, Calendar, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Quote, Calendar, AlertTriangle, Trophy, Sparkles, Award } from 'lucide-react';
 
 
 interface ProfileParams {
@@ -95,9 +95,30 @@ export default function GraduateProfilePage({ params }: ProfileParams) {
         <h1 className="text-2xl md:text-3xl font-serif font-extrabold text-gold-light tracking-wide mb-1">
           {graduate.fullName}
         </h1>
-        <p className="text-gray-500 text-xs md:text-sm font-sans mb-4">
+        <p className="text-gray-500 text-xs md:text-sm font-sans mb-3">
           Known as &ldquo;{graduate.displayName}&rdquo;
         </p>
+
+        {/* Academic Honors & Badges */}
+        {((graduate.order <= 10 || graduate.isHighestHonors) || graduate.bourse || graduate.masterProgram) && (
+          <div className="flex flex-wrap justify-center gap-2 my-4">
+            {(graduate.order <= 10 || graduate.isHighestHonors) && (
+              <div className="bg-gold-gradient text-navy-dark px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-[0_0_12px_rgba(212,175,55,0.4)]">
+                <Trophy className="h-3.5 w-3.5" /> Highest Honors (Top 10)
+              </div>
+            )}
+            {graduate.bourse && (
+              <div className="bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                📜 {graduate.bourse}
+              </div>
+            )}
+            {graduate.masterProgram && (
+              <div className="bg-blue-950/80 text-blue-200 border border-blue-500/40 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+                🇫🇷 {graduate.masterProgram}
+              </div>
+            )}
+          </div>
+        )}
 
 
 

@@ -45,6 +45,8 @@ export default function AdminPage() {
   const [gradInstagram, setGradInstagram] = useState('');
   const [gradOrder, setGradOrder] = useState(1);
   const [gradShowProfile, setGradShowProfile] = useState(true);
+  const [gradBourse, setGradBourse] = useState('');
+  const [gradMaster, setGradMaster] = useState('');
 
   // CSV File Upload Refs
   const csvInputRef = useRef<HTMLInputElement>(null);
@@ -197,7 +199,9 @@ export default function AdminPage() {
       quote: gradQuote.trim(),
       linkedin: gradLinkedin.trim(),
       instagram: gradInstagram.trim(),
-      showProfile: gradShowProfile
+      showProfile: gradShowProfile,
+      bourse: gradBourse.trim(),
+      masterProgram: gradMaster.trim()
     };
 
     if (editingGradId) {
@@ -219,6 +223,8 @@ export default function AdminPage() {
     setGradInstagram('');
     setGradOrder(1);
     setGradShowProfile(true);
+    setGradBourse('');
+    setGradMaster('');
   };
 
   const handleEditGradClick = (g: Graduate) => {
@@ -231,6 +237,8 @@ export default function AdminPage() {
     setGradInstagram(g.instagram);
     setGradOrder(g.order);
     setGradShowProfile(g.showProfile);
+    setGradBourse(g.bourse || '');
+    setGradMaster(g.masterProgram || '');
     setShowGradForm(true);
   };
 
@@ -244,6 +252,8 @@ export default function AdminPage() {
     setGradInstagram('');
     setGradOrder(graduates.length + 1);
     setGradShowProfile(true);
+    setGradBourse('');
+    setGradMaster('');
     setShowGradForm(true);
   };
 
@@ -1015,6 +1025,29 @@ export default function AdminPage() {
                           placeholder="https://instagram.com/..."
                           value={gradInstagram}
                           onChange={(e) => setGradInstagram(e.target.value)}
+                          className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-gray-400 mb-1">Bourse / Scholarship Info (e.g. French Govt Bourse)</label>
+                        <input
+                          type="text"
+                          placeholder="French Government Bourse"
+                          value={gradBourse}
+                          onChange={(e) => setGradBourse(e.target.value)}
+                          className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-400 mb-1">Master 2 in France (e.g. M2 IAE Poitiers)</label>
+                        <input
+                          type="text"
+                          placeholder="Master 2 - IAE Poitiers, France"
+                          value={gradMaster}
+                          onChange={(e) => setGradMaster(e.target.value)}
                           className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
                         />
                       </div>

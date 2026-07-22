@@ -14,10 +14,10 @@ export const Navbar = () => {
     { name: 'Home', path: '/', icon: GraduationCap },
     { name: 'Program', path: '/program', icon: Calendar },
     { name: 'Certificate Order', path: '/certificate-order', icon: Award },
-    { name: 'Graduates', path: '/graduates', icon: Users },
+    { name: 'Graduate Profiles', path: '/graduates', icon: Users },
     { name: 'Messages & Memories', path: '/messages', icon: MessageSquare },
     { name: 'Media Hub', path: '/media', icon: ImageIcon },
-    { name: 'Our Journey', path: '/journey', icon: BookOpen }
+    { name: 'Achievements & Journey', path: '/journey', icon: BookOpen }
   ];
 
   const isActive = (path: string) => {

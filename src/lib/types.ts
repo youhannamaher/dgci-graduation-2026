@@ -29,6 +29,9 @@ export interface Graduate {
   linkedin: string;
   instagram: string;
   showProfile: boolean;
+  isHighestHonors?: boolean;
+  bourse?: string;
+  masterProgram?: string;
 }
 
 export interface Message {

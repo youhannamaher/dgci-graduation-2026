@@ -40,7 +40,9 @@ const mapGradDbToClient = (g: any) => ({
   quote: g.quote || '',
   linkedin: g.linkedin || '',
   instagram: g.instagram || '',
-  showProfile: g.show_profile ?? true
+  showProfile: g.show_profile ?? true,
+  bourse: g.bourse || '',
+  masterProgram: g.master_program || g.masterProgram || ''
 });
 
 const mapGradClientToDb = (g: any) => ({
@@ -52,7 +54,9 @@ const mapGradClientToDb = (g: any) => ({
   quote: g.quote,
   linkedin: g.linkedin,
   instagram: g.instagram,
-  show_profile: g.showProfile
+  show_profile: g.showProfile,
+  bourse: g.bourse || '',
+  master_program: g.masterProgram || ''
 });
 
 const mapProgDbToClient = (p: any) => ({
@@ -142,7 +146,7 @@ export async function GET(
           const [info, prog, grads, msgs, pics, links] = await Promise.all([
             sql`SELECT url FROM media_links WHERE type = 'ceremony_info' LIMIT 1`,
             sql`SELECT id, item_order as "order", time, title, description, is_current as "isCurrent" FROM program_items ORDER BY item_order ASC`,
-            sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile" FROM graduates ORDER BY order_number ASC`,
+            sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile", bourse, master_program as "masterProgram" FROM graduates ORDER BY order_number ASC`,
             sql`SELECT id, message, sender_name as "senderName", is_anonymous as "isAnonymous", target_type as "targetType", target_graduate_ids as "targetGraduateIds", relation, status, created_at as "createdAt" FROM messages ORDER BY created_at DESC`,
             sql`SELECT id, url, caption, uploaded_by as "uploadedBy", status, created_at as "createdAt" FROM photos ORDER BY created_at DESC`,
             sql`SELECT type, url FROM media_links`
