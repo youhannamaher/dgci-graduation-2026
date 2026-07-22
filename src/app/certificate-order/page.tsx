@@ -167,66 +167,61 @@ export default function CertificateOrderPage() {
               return (
                 <div
                   key={`honors-${grad.id}`}
-                  className="glass-card rounded-xl px-3 py-2 border border-gold/40 bg-gradient-to-r from-gold/10 via-[#03070d]/60 to-[#03070d]/60 gold-glow flex items-center justify-between gap-2.5 text-left relative"
+                  className="glass-card rounded-xl p-3.5 border border-gold/40 bg-gradient-to-r from-gold/10 via-[#03070d]/60 to-[#03070d]/60 gold-glow flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left relative"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="flex items-center gap-3">
                     {/* Honors Rank Badge */}
-                    <div className="flex flex-col items-center justify-center shrink-0 w-8">
-                      <Trophy className="h-3.5 w-3.5 text-gold mb-0.5" />
-                      <span className="font-serif text-[9px] font-bold text-gold">
+                    <div className="flex flex-col items-center justify-center min-w-10">
+                      <Trophy className="h-4 w-4 text-gold mb-0.5" />
+                      <span className="font-serif text-[10px] font-bold text-gold">
                         {honorsRankStr}
                       </span>
                     </div>
 
-                    <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="sm" />
+                    <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="md" />
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light truncate">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                        <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light leading-snug">
                           {grad.fullName}
                         </h3>
 
-                        <span className="bg-gold-gradient text-navy-dark px-1.5 py-0.2 rounded-full text-[8px] font-extrabold uppercase tracking-wider shrink-0">
-                          Highest Honors
-                        </span>
-
-                        <span className="text-[9px] text-gold/80 font-mono bg-gold/10 px-1.5 py-0.2 rounded border border-gold/20 shrink-0">
-                          Walk #{String(grad.order).padStart(3, '0')}
+                        <span className="bg-gold-gradient text-navy-dark px-2 py-0.2 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5 shadow-[0_0_8px_rgba(212,175,55,0.3)]">
+                          <Sparkles className="h-2.5 w-2.5" /> Highest Honors
                         </span>
                       </div>
 
-                      {(grad.bourse || grad.masterProgram) && (
-                        <div className="flex flex-wrap gap-1 mt-0.5 text-[9px]">
-                          {grad.bourse && (
-                            <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-semibold inline-flex items-center gap-1">
-                              📜 {grad.bourse}
-                            </span>
-                          )}
-                          {grad.masterProgram && (
-                            <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-1.5 py-0.2 rounded font-semibold inline-flex items-center gap-1">
-                              <FranceFlag className="w-3 h-2" /> {grad.masterProgram}
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      <span className="text-[10px] text-gray-400 font-sans block mb-1">
+                        License Walk Order <strong className="text-gold/90">#{String(grad.order).padStart(3, '0')}</strong>
+                      </span>
+
+                      <div className="flex flex-wrap gap-1.5 text-[9px]">
+                        {grad.bourse && (
+                          <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1">
+                            📜 {grad.bourse}
+                          </span>
+                        )}
+                        {grad.masterProgram && (
+                          <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1.5 max-w-[240px] sm:max-w-none truncate">
+                            <FranceFlag className="w-3 h-2 shrink-0" /> <span className="truncate">{grad.masterProgram}</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Icon Actions */}
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center justify-end gap-2 shrink-0 self-end sm:self-center">
                     <Link
                       href={`/graduates/${grad.id}`}
-                      title="View Profile"
-                      className="p-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark transition-all"
+                      className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
                     >
-                      <User className="h-3.5 w-3.5" />
+                      <User className="h-3.5 w-3.5" /> Profile
                     </Link>
                     <Link
                       href={`/messages?to=${grad.id}`}
-                      title="Leave Message"
-                      className="p-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark transition-all"
+                      className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
                     >
-                      <MessageSquare className="h-3.5 w-3.5" />
+                      <MessageSquare className="h-3.5 w-3.5" /> Message
                     </Link>
                   </div>
                 </div>
@@ -237,11 +232,11 @@ export default function CertificateOrderPage() {
 
         {/* SECTION 2: LICENSE CERTIFICATE DISTRIBUTION (ALL 58 GRADUATES) */}
         {showLicenseSection && filteredLicense.length > 0 && (
-          <div className="space-y-2">
-            <div className="pt-3 pb-1 flex items-center gap-2">
+          <div className="space-y-3">
+            <div className="pt-4 pb-1 flex items-center gap-2">
               <div className="h-[1px] flex-1 bg-gold/25"></div>
-              <span className="text-[10px] font-serif font-bold text-gray-200 uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-[#03070d] px-3 py-0.5 rounded-full border border-gold/20">
-                <GraduationCap className="h-3 w-3 text-gold" /> License Certificate Distribution (All Graduates #001 - #058)
+              <span className="text-[11px] font-serif font-bold text-gray-200 uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-[#03070d] px-3.5 py-1 rounded-full border border-gold/20">
+                <GraduationCap className="h-3.5 w-3.5 text-gold" /> License Certificate Distribution (All Graduates #001 - #058)
               </span>
               <div className="h-[1px] flex-1 bg-gold/25"></div>
             </div>
@@ -252,67 +247,62 @@ export default function CertificateOrderPage() {
               return (
                 <div
                   key={`license-${grad.id}`}
-                  className={`glass-card rounded-xl px-3 py-2 border transition-all duration-300 flex items-center justify-between gap-2.5 text-left relative ${
+                  className={`glass-card rounded-xl p-3.5 border transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left relative ${
                     isHighestHonors
                       ? 'border-gold/30 bg-gradient-to-r from-gold/5 via-[#03070d]/60 to-[#03070d]/60'
                       : 'border-gold/10 hover:border-gold/30'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="flex items-center gap-3">
                     {/* Main License Stage Walk Order Badge */}
-                    <div className="flex flex-col items-center justify-center shrink-0 w-8">
+                    <div className="flex flex-col items-center justify-center min-w-10">
                       <span className="font-serif text-xs font-bold text-gold">
                         #{String(grad.order).padStart(3, '0')}
                       </span>
                     </div>
 
-                    <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="sm" />
+                    <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="md" />
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light truncate">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                        <h3 className="font-serif font-bold text-xs md:text-sm text-gold-light leading-snug">
                           {grad.fullName}
                         </h3>
 
                         {isHighestHonors && (
-                          <span className="bg-gold-gradient text-navy-dark px-1.5 py-0.2 rounded-full text-[8px] font-extrabold uppercase tracking-wider shrink-0">
-                            Highest Honors
+                          <span className="bg-gold-gradient text-navy-dark px-2 py-0.2 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-0.5">
+                            <Sparkles className="h-2.5 w-2.5" /> Highest Honors
                           </span>
                         )}
                       </div>
 
-                      {(grad.bourse || grad.masterProgram) && (
-                        <div className="flex flex-wrap gap-1 mt-0.5 text-[9px]">
-                          {grad.bourse && (
-                            <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-semibold inline-flex items-center gap-1">
-                              📜 {grad.bourse}
-                            </span>
-                          )}
-                          {grad.masterProgram && (
-                            <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-1.5 py-0.2 rounded font-semibold inline-flex items-center gap-1">
-                              <FranceFlag className="w-3 h-2" /> {grad.masterProgram}
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      <div className="flex flex-wrap gap-1.5 text-[9px] mt-1">
+                        {grad.bourse && (
+                          <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1">
+                            📜 {grad.bourse}
+                          </span>
+                        )}
+                        {grad.masterProgram && (
+                          <span className="bg-blue-950/60 text-blue-200 border border-blue-500/30 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1.5 max-w-[240px] sm:max-w-none truncate">
+                            <FranceFlag className="w-3 h-2 shrink-0" /> <span className="truncate">{grad.masterProgram}</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Icon Actions */}
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center justify-end gap-2 shrink-0 self-end sm:self-center">
                     <Link
                       href={`/graduates/${grad.id}`}
-                      title="View Profile"
-                      className="p-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark transition-all"
+                      className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
                     >
-                      <User className="h-3.5 w-3.5" />
+                      <User className="h-3.5 w-3.5" /> Profile
                     </Link>
                     <Link
                       href={`/messages?to=${grad.id}`}
-                      title="Leave Message"
-                      className="p-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark transition-all"
+                      className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-gold hover:bg-gold-gradient hover:text-navy-dark text-[11px] font-bold transition-all inline-flex items-center gap-1"
                     >
-                      <MessageSquare className="h-3.5 w-3.5" />
+                      <MessageSquare className="h-3.5 w-3.5" /> Message
                     </Link>
                   </div>
                 </div>
