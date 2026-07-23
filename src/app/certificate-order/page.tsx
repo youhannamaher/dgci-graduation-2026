@@ -75,8 +75,30 @@ function CertificateOrderInner() {
     let list = licenseGraduates;
     if (activeFilter === 'bourse') {
       list = list.filter((g) => g.bourse && g.bourse.trim() !== '');
+      // Order by Highest Honors order first!
+      list = [...list].sort((a, b) => {
+        const isHonorsA = a.isHighestHonors === true || (typeof a.honorsOrder === 'number' && a.honorsOrder > 0);
+        const isHonorsB = b.isHighestHonors === true || (typeof b.honorsOrder === 'number' && b.honorsOrder > 0);
+
+        const rankA = isHonorsA && typeof a.honorsOrder === 'number' && a.honorsOrder > 0 ? a.honorsOrder : 999;
+        const rankB = isHonorsB && typeof b.honorsOrder === 'number' && b.honorsOrder > 0 ? b.honorsOrder : 999;
+
+        if (rankA !== rankB) return rankA - rankB;
+        return a.order - b.order;
+      });
     } else if (activeFilter === 'master') {
       list = list.filter((g) => g.masterProgram && g.masterProgram.trim() !== '');
+      // Order by Highest Honors order first!
+      list = [...list].sort((a, b) => {
+        const isHonorsA = a.isHighestHonors === true || (typeof a.honorsOrder === 'number' && a.honorsOrder > 0);
+        const isHonorsB = b.isHighestHonors === true || (typeof b.honorsOrder === 'number' && b.honorsOrder > 0);
+
+        const rankA = isHonorsA && typeof a.honorsOrder === 'number' && a.honorsOrder > 0 ? a.honorsOrder : 999;
+        const rankB = isHonorsB && typeof b.honorsOrder === 'number' && b.honorsOrder > 0 ? b.honorsOrder : 999;
+
+        if (rankA !== rankB) return rankA - rankB;
+        return a.order - b.order;
+      });
     }
     return filterBySearch(list);
   }, [licenseGraduates, activeFilter, searchQuery]);
@@ -91,6 +113,14 @@ function CertificateOrderInner() {
 
   const showHonorsSection = activeFilter === 'all' || activeFilter === 'honors';
   const showLicenseSection = activeFilter === 'all' || activeFilter === 'license' || activeFilter === 'bourse' || activeFilter === 'master';
+  const hideOrderNumber = activeFilter === 'bourse' || activeFilter === 'master';
+
+  const sectionHeaderTitle =
+    activeFilter === 'bourse'
+      ? `📜 Bourse Recipients (${filteredLicense.length})`
+      : activeFilter === 'master'
+      ? `🇫🇷 Master 2 France Students (${filteredLicense.length})`
+      : `License Certificate Distribution (All Graduates #001 - #058)`;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 w-full animate-fadeIn">
@@ -267,13 +297,13 @@ function CertificateOrderInner() {
           </div>
         )}
 
-        {/* SECTION 2: LICENSE CERTIFICATE DISTRIBUTION (ALL 58 GRADUATES) */}
+        {/* SECTION 2: LICENSE CERTIFICATE DISTRIBUTION / BOURSE / M2 FRANCE */}
         {showLicenseSection && filteredLicense.length > 0 && (
           <div className="space-y-3">
             <div className="pt-4 pb-1 flex items-center gap-2">
               <div className="h-[1px] flex-1 bg-gold/25"></div>
               <span className="text-[11px] font-serif font-bold text-gray-200 uppercase tracking-[0.2em] inline-flex items-center gap-1.5 bg-[#03070d] px-3.5 py-1 rounded-full border border-gold/20">
-                <GraduationCap className="h-3.5 w-3.5 text-gold" /> License Certificate Distribution (All Graduates #001 - #058)
+                <GraduationCap className="h-3.5 w-3.5 text-gold" /> {sectionHeaderTitle}
               </span>
               <div className="h-[1px] flex-1 bg-gold/25"></div>
             </div>
@@ -291,12 +321,14 @@ function CertificateOrderInner() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Main License Stage Walk Order Badge */}
-                    <div className="flex flex-col items-center justify-center min-w-10">
-                      <span className="font-serif text-xs font-bold text-gold">
-                        #{String(grad.order).padStart(3, '0')}
-                      </span>
-                    </div>
+                    {/* Stage Walk Order Badge (Hidden for Bourse and M2 France) */}
+                    {!hideOrderNumber && (
+                      <div className="flex flex-col items-center justify-center min-w-10">
+                        <span className="font-serif text-xs font-bold text-gold">
+                          #{String(grad.order).padStart(3, '0')}
+                        </span>
+                      </div>
+                    )}
 
                     <StudentAvatar fullName={grad.fullName} photoUrl={grad.photo} size="md" />
 
