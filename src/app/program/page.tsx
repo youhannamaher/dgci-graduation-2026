@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useData } from '@/context/DataContext';
 import { calculateProgramSchedule } from '@/lib/programUtils';
-import { Clock, CheckCircle2, AlertCircle, Sparkles, Timer, Calendar } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, Sparkles, Timer, Calendar, Trophy, GraduationCap, ArrowRight } from 'lucide-react';
 
 export default function ProgramPage() {
   const { program, ceremonyInfo, isLoading } = useData();
@@ -81,6 +82,9 @@ export default function ProgramPage() {
       ) : (
         <div className="relative border-l-2 border-gold/20 ml-3.5 pl-6 space-y-5 py-1">
           {calculatedItems.map((item) => {
+            const isHonorsItem = item.id === 'prog-7' || item.title.toLowerCase().includes('highest honors');
+            const isLicenseItem = item.id === 'prog-11' || item.title.toLowerCase().includes('license certificates');
+
             return (
               <div key={item.id} className="relative group">
                 {/* Timeline Dot */}
@@ -129,6 +133,29 @@ export default function ProgramPage() {
                   <p className="text-gray-400 text-xs leading-relaxed font-sans">
                     {item.description}
                   </p>
+
+                  {/* Direct Link Actions */}
+                  {isHonorsItem && (
+                    <div className="mt-3 pt-2.5 border-t border-gold/15 flex justify-end">
+                      <Link
+                        href="/certificate-order?filter=honors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/10 hover:bg-gold-gradient text-gold hover:text-navy-dark border border-gold/25 text-[11px] font-bold transition-all shadow-sm group/btn"
+                      >
+                        <Trophy className="h-3.5 w-3.5" /> View Highest Honors Order <ArrowRight className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                      </Link>
+                    </div>
+                  )}
+
+                  {isLicenseItem && (
+                    <div className="mt-3 pt-2.5 border-t border-gold/15 flex justify-end">
+                      <Link
+                        href="/certificate-order?filter=license"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold/10 hover:bg-gold-gradient text-gold hover:text-navy-dark border border-gold/25 text-[11px] font-bold transition-all shadow-sm group/btn"
+                      >
+                        <GraduationCap className="h-3.5 w-3.5" /> View License Walk Order <ArrowRight className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             );

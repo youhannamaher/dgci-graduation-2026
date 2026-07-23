@@ -1,16 +1,34 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useData } from '@/context/DataContext';
 import { StudentAvatar } from '@/components/StudentAvatar';
 import { FranceFlag } from '@/components/FranceFlag';
 import { Search, MessageSquare, User, HelpCircle, Trophy, Award, Sparkles, GraduationCap, CheckCircle2 } from 'lucide-react';
 
-export default function CertificateOrderPage() {
+function CertificateOrderInner() {
   const { graduates, isLoading } = useData();
+  const searchParams = useSearchParams();
+
+  const initialFilter = useMemo(() => {
+    const p = searchParams.get('filter') || searchParams.get('section');
+    if (p && ['all', 'honors', 'license', 'bourse', 'master'].includes(p)) {
+      return p as 'all' | 'honors' | 'license' | 'bourse' | 'master';
+    }
+    return 'all';
+  }, [searchParams]);
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'honors' | 'bourse' | 'master'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'honors' | 'license' | 'bourse' | 'master'>(initialFilter);
+
+  useEffect(() => {
+    const p = searchParams.get('filter') || searchParams.get('section');
+    if (p && ['all', 'honors', 'license', 'bourse', 'master'].includes(p)) {
+      setActiveFilter(p as any);
+    }
+  }, [searchParams]);
 
   // Sorted full graduates list for License Certificate Distribution (#001 - #058)
   const licenseGraduates = useMemo(() => {
@@ -33,7 +51,7 @@ export default function CertificateOrderPage() {
     const honors = honorsGraduates.length;
     const bourse = licenseGraduates.filter((g) => g.bourse && g.bourse.trim() !== '').length;
     const master = licenseGraduates.filter((g) => g.masterProgram && g.masterProgram.trim() !== '').length;
-    return { all: licenseGraduates.length, honors, bourse, master };
+    return { all: licenseGraduates.length, honors, license: licenseGraduates.length, bourse, master };
   }, [licenseGraduates, honorsGraduates]);
 
   // Search filter helper
@@ -52,7 +70,16 @@ export default function CertificateOrderPage() {
   };
 
   const filteredHonors = useMemo(() => filterBySearch(honorsGraduates), [honorsGraduates, searchQuery]);
-  const filteredLicense = useMemo(() => filterBySearch(licenseGraduates), [licenseGraduates, searchQuery]);
+
+  const filteredLicense = useMemo(() => {
+    let list = licenseGraduates;
+    if (activeFilter === 'bourse') {
+      list = list.filter((g) => g.bourse && g.bourse.trim() !== '');
+    } else if (activeFilter === 'master') {
+      list = list.filter((g) => g.masterProgram && g.masterProgram.trim() !== '');
+    }
+    return filterBySearch(list);
+  }, [licenseGraduates, activeFilter, searchQuery]);
 
   if (isLoading) {
     return (
@@ -63,7 +90,7 @@ export default function CertificateOrderPage() {
   }
 
   const showHonorsSection = activeFilter === 'all' || activeFilter === 'honors';
-  const showLicenseSection = activeFilter === 'all' || activeFilter === 'bourse' || activeFilter === 'master';
+  const showLicenseSection = activeFilter === 'all' || activeFilter === 'license' || activeFilter === 'bourse' || activeFilter === 'master';
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 w-full animate-fadeIn">
@@ -92,7 +119,7 @@ export default function CertificateOrderPage() {
                 : 'text-gray-400 hover:text-gold hover:bg-gold/5'
             }`}
           >
-            All License Certificates ({counts.all})
+            All Certificates ({counts.all})
           </button>
           <button
             onClick={() => setActiveFilter('honors')}
@@ -102,7 +129,17 @@ export default function CertificateOrderPage() {
                 : 'text-gray-400 hover:text-gold hover:bg-gold/5'
             }`}
           >
-            <Trophy className="h-3 w-3" /> Highest Honors ({counts.honors})
+            <Trophy className="h-3 w-3" /> Highest Honors Order ({counts.honors})
+          </button>
+          <button
+            onClick={() => setActiveFilter('license')}
+            className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all inline-flex items-center gap-1 ${
+              activeFilter === 'license'
+                ? 'bg-gold-gradient text-navy-dark shadow-[0_0_10px_rgba(212,175,55,0.3)]'
+                : 'text-gray-400 hover:text-gold hover:bg-gold/5'
+            }`}
+          >
+            <GraduationCap className="h-3 w-3" /> License Order ({counts.license})
           </button>
           <button
             onClick={() => setActiveFilter('bourse')}
@@ -311,17 +348,22 @@ export default function CertificateOrderPage() {
           </div>
         )}
 
-        {filteredHonors.length === 0 && filteredLicense.length === 0 && (
-          <div className="glass-card rounded-xl p-8 text-center border-gold/10">
+        {/* Empty state */}
+        {((showHonorsSection && filteredHonors.length === 0) && (showLicenseSection && filteredLicense.length === 0)) && (
+          <div className="glass-card rounded-xl p-8 text-center border-gold/10 max-w-md mx-auto my-6">
             <HelpCircle className="h-8 w-8 text-gold mx-auto mb-2 opacity-60" />
-            <p className="text-gray-400 text-xs">No graduates match your search criteria.</p>
+            <p className="text-gray-400 text-sm">No graduates found for this filter selection.</p>
           </div>
         )}
       </div>
-
-      <div className="text-center text-[10px] text-gray-500 mt-6 font-sans">
-        Showing 58 License Certificate Graduates across two distribution stages.
-      </div>
     </div>
+  );
+}
+
+export default function CertificateOrderPage() {
+  return (
+    <Suspense fallback={<div className="flex-1 flex justify-center items-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-gold"></div></div>}>
+      <CertificateOrderInner />
+    </Suspense>
   );
 }
