@@ -14,6 +14,7 @@ export interface ProgramItem {
   id: string;
   order: number;
   time: string;
+  durationMinutes?: number;
   title: string;
   description: string;
   isCurrent: boolean;

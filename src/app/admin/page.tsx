@@ -8,6 +8,7 @@ import {
   Plus, Edit, Trash2, Check, CheckCircle, X, FileSpreadsheet, Download, Upload, AlertCircle, AlertTriangle, Eye, EyeOff
 } from 'lucide-react';
 import { Graduate, ProgramItem, Message, Photo } from '@/lib/types';
+import { calculateProgramSchedule } from '@/lib/programUtils';
 
 export default function AdminPage() {
   const {
@@ -30,6 +31,7 @@ export default function AdminPage() {
   const [showProgForm, setShowProgForm] = useState(false);
   const [editingProgId, setEditingProgId] = useState<string | null>(null);
   const [progTime, setProgTime] = useState('');
+  const [progDuration, setProgDuration] = useState<number>(5);
   const [progTitle, setProgTitle] = useState('');
   const [progDesc, setProgDesc] = useState('');
   const [progOrder, setProgOrder] = useState(1);
@@ -116,21 +118,23 @@ export default function AdminPage() {
   // --- PROGRAM OPERATIONS ---
   const handleSaveProgramItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!progTitle.trim() || !progTime.trim()) return;
+    if (!progTitle.trim()) return;
 
     if (editingProgId) {
       const success = await updateProgramItem(editingProgId, {
-        time: progTime,
-        title: progTitle,
-        description: progDesc,
+        time: progTime || '6:30 PM',
+        durationMinutes: Number(progDuration) || 5,
+        title: progTitle.trim(),
+        description: progDesc.trim(),
         order: progOrder
       });
       if (success) triggerSaveNotification();
     } else {
       const success = await addProgramItem({
-        time: progTime,
-        title: progTitle,
-        description: progDesc,
+        time: progTime || '6:30 PM',
+        durationMinutes: Number(progDuration) || 5,
+        title: progTitle.trim(),
+        description: progDesc.trim(),
         order: progOrder,
         isCurrent: false
       });
@@ -141,6 +145,7 @@ export default function AdminPage() {
     setShowProgForm(false);
     setEditingProgId(null);
     setProgTime('');
+    setProgDuration(5);
     setProgTitle('');
     setProgDesc('');
     setProgOrder(1);
@@ -148,7 +153,8 @@ export default function AdminPage() {
 
   const handleEditProgClick = (item: ProgramItem) => {
     setEditingProgId(item.id);
-    setProgTime(item.time);
+    setProgTime(item.time || '');
+    setProgDuration(item.durationMinutes || 5);
     setProgTitle(item.title);
     setProgDesc(item.description);
     setProgOrder(item.order);
@@ -163,6 +169,7 @@ export default function AdminPage() {
   const handleNewProgClick = () => {
     setEditingProgId(null);
     setProgTime('');
+    setProgDuration(5);
     setProgTitle('');
     setProgDesc('');
     setProgOrder(program.length + 1);
@@ -781,143 +788,173 @@ export default function AdminPage() {
           )}
 
           {/* TAB 3: PROGRAM MANAGER */}
-          {activeTab === 'program' && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-serif font-bold text-sm text-gold-light">Manage Ceremony Timeline</h3>
-                <button
-                  onClick={handleNewProgClick}
-                  className="bg-gold-gradient text-navy-dark text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1"
-                >
-                  <Plus className="h-3.5 w-3.5" /> Add Timeline Item
-                </button>
-              </div>
+          {activeTab === 'program' && (() => {
+            const { calculatedItems, formattedTotalDuration, ceremonyEndTime } = calculateProgramSchedule(
+              program,
+              ceremonyInfo.time || '6:30 PM'
+            );
 
-              {/* Event Editor Form */}
-              {showProgForm && (
-                <div className="glass-card rounded-xl p-5 border border-gold/25 space-y-3 text-xs">
-                  <h4 className="font-serif font-bold text-gold">{editingProgId ? 'Edit Event Item' : 'New Timeline Event'}</h4>
-                  <form onSubmit={handleSaveProgramItem} className="space-y-3">
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-gray-400 mb-1">Time</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. 6:00 PM"
-                          value={progTime}
-                          onChange={(e) => setProgTime(e.target.value)}
-                          className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
-                          required
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-gray-400 mb-1">Title</label>
-                        <input
-                          type="text"
-                          placeholder="Opening Ceremony..."
-                          value={progTitle}
-                          onChange={(e) => setProgTitle(e.target.value)}
-                          className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-gray-400 mb-1">Description</label>
-                      <textarea
-                        placeholder="Detailed description of timeline stage..."
-                        value={progDesc}
-                        onChange={(e) => setProgDesc(e.target.value)}
-                        className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="w-24">
-                      <label className="block text-gray-400 mb-1">Timeline Order</label>
-                      <input
-                        type="number"
-                        value={progOrder}
-                        onChange={(e) => setProgOrder(parseInt(e.target.value) || 1)}
-                        className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
-                        required
-                      />
-                    </div>
+            return (
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gold/5 border border-gold/20 p-3.5 rounded-xl">
+                  <div>
+                    <h3 className="font-serif font-bold text-sm text-gold-light">Ceremony Timeline Manager</h3>
+                    <p className="text-gray-400 text-[11px] font-sans">
+                      Start Time: <strong className="text-gold">{ceremonyInfo.time || '6:30 PM'}</strong> &bull; Total: <strong className="text-gold">{formattedTotalDuration}</strong> &bull; End: <strong className="text-gold">{ceremonyEndTime}</strong>
+                    </p>
+                  </div>
 
-                    <div className="flex gap-2">
-                      <button
-                        type="submit"
-                        className="bg-gold-gradient text-navy-dark px-3 py-1.5 rounded-lg font-bold"
-                      >
-                        Save Item
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowProgForm(false)}
-                        className="bg-gray-800 text-white px-3 py-1.5 rounded-lg font-semibold"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
+                  <button
+                    onClick={handleNewProgClick}
+                    className="bg-gold-gradient text-navy-dark text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shrink-0 self-start sm:self-auto"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add Timeline Event
+                  </button>
                 </div>
-              )}
 
-              {/* Items List Table */}
-              <div className="glass-card rounded-xl overflow-hidden border border-gold/15">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-gold/5 border-b border-gold/15 text-gold-light">
-                      <th className="p-3">Order</th>
-                      <th className="p-3">Time</th>
-                      <th className="p-3">Title</th>
-                      <th className="p-3">Now Happening?</th>
-                      <th className="p-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {program.map((item) => (
-                      <tr key={item.id} className="border-b border-gold/5 hover:bg-gold/5 text-gray-300">
-                        <td className="p-3 font-semibold text-gold">#{item.order}</td>
-                        <td className="p-3 font-medium">{item.time}</td>
-                        <td className="p-3">
-                          <span className="font-semibold block">{item.title}</span>
-                          <span className="text-[10px] text-gray-500 line-clamp-1">{item.description}</span>
-                        </td>
-                        <td className="p-3">
-                          <button
-                            onClick={() => handleToggleCurrentEvent(item.id, item.isCurrent)}
-                            className={`px-2.5 py-1 rounded text-[9px] font-bold uppercase transition-all ${
-                              item.isCurrent
-                                ? 'bg-gold text-navy-dark border border-gold animate-pulse'
-                                : 'bg-[#03070d] text-gray-500 border border-gold/15 hover:text-gold hover:border-gold/30'
-                            }`}
-                          >
-                            {item.isCurrent ? 'Current' : 'Set Active'}
-                          </button>
-                        </td>
-                        <td className="p-3 text-right flex justify-end gap-1.5">
-                          <button
-                            onClick={() => handleEditProgClick(item)}
-                            className="p-1 text-gold hover:bg-gold/10 rounded"
-                            title="Edit"
-                          >
-                            <Edit className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProg(item.id)}
-                            className="p-1 text-rose-400 hover:bg-rose-950/20 rounded"
-                            title="Delete"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </td>
+                {/* Event Editor Form */}
+                {showProgForm && (
+                  <div className="glass-card rounded-xl p-5 border border-gold/25 space-y-3 text-xs">
+                    <h4 className="font-serif font-bold text-gold">{editingProgId ? 'Edit Event Item' : 'New Timeline Event'}</h4>
+                    <form onSubmit={handleSaveProgramItem} className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div>
+                          <label className="block text-gray-400 mb-1">Start Time (Override)</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 6:30 PM"
+                            value={progTime}
+                            onChange={(e) => setProgTime(e.target.value)}
+                            className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gold mb-1 font-semibold">Duration (Minutes)</label>
+                          <input
+                            type="number"
+                            placeholder="5"
+                            value={progDuration}
+                            onChange={(e) => setProgDuration(parseInt(e.target.value) || 5)}
+                            className="w-full bg-[#03070d]/50 border border-gold/40 rounded-lg p-2 text-white font-bold"
+                            required
+                            min={1}
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block text-gray-400 mb-1">Title</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Highest Honors Ceremony"
+                            value={progTitle}
+                            onChange={(e) => setProgTitle(e.target.value)}
+                            className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-gray-400 mb-1">Description</label>
+                        <textarea
+                          placeholder="Detailed description of timeline stage..."
+                          value={progDesc}
+                          onChange={(e) => setProgDesc(e.target.value)}
+                          className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
+                          rows={2}
+                        />
+                      </div>
+                      <div className="w-24">
+                        <label className="block text-gray-400 mb-1">Timeline Order</label>
+                        <input
+                          type="number"
+                          value={progOrder}
+                          onChange={(e) => setProgOrder(parseInt(e.target.value) || 1)}
+                          className="w-full bg-[#03070d]/50 border border-gold/20 rounded-lg p-2 text-white"
+                          required
+                        />
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="submit"
+                          className="bg-gold-gradient text-navy-dark px-3 py-1.5 rounded-lg font-bold"
+                        >
+                          Save Item
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowProgForm(false)}
+                          className="bg-gray-800 text-white px-3 py-1.5 rounded-lg font-semibold"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* Items List Table */}
+                <div className="glass-card rounded-xl overflow-hidden border border-gold/15">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-gold/5 border-b border-gold/15 text-gold-light">
+                        <th className="p-3">Order</th>
+                        <th className="p-3">Dynamic Range</th>
+                        <th className="p-3">Duration</th>
+                        <th className="p-3">Event Title</th>
+                        <th className="p-3">Now Happening?</th>
+                        <th className="p-3 text-right">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {calculatedItems.map((item) => (
+                        <tr key={item.id} className={`border-b border-gold/5 transition-all ${item.isCurrent ? 'bg-gold/10 text-white font-semibold' : 'hover:bg-gold/5 text-gray-300'}`}>
+                          <td className="p-3 font-semibold text-gold">#{item.order}</td>
+                          <td className="p-3 font-mono font-semibold text-gold">{item.formattedRange}</td>
+                          <td className="p-3">
+                            <span className="bg-gold/10 text-gold px-2 py-0.5 rounded border border-gold/20 font-sans text-[10px]">
+                              ⏱️ {item.durationMinutes}m
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            <span className="font-semibold block text-white">{item.title}</span>
+                            <span className="text-[10px] text-gray-400 line-clamp-1">{item.description}</span>
+                          </td>
+                          <td className="p-3">
+                            <button
+                              onClick={() => handleToggleCurrentEvent(item.id, item.isCurrent)}
+                              className={`px-2.5 py-1 rounded text-[9px] font-bold uppercase transition-all ${
+                                item.isCurrent
+                                  ? 'bg-gold text-navy-dark border border-gold animate-pulse shadow-[0_0_8px_rgba(212,175,55,0.4)]'
+                                  : 'bg-[#03070d] text-gray-400 border border-gold/20 hover:text-gold hover:border-gold/40'
+                              }`}
+                            >
+                              {item.isCurrent ? '⚡ Active Now' : 'Set Active'}
+                            </button>
+                          </td>
+                          <td className="p-3 text-right flex justify-end gap-1.5">
+                            <button
+                              onClick={() => handleEditProgClick(item)}
+                              className="p-1 text-gold hover:bg-gold/10 rounded"
+                              title="Edit"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProg(item.id)}
+                              className="p-1 text-rose-400 hover:bg-rose-950/20 rounded"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* TAB 4: GRADUATES PANEL */}
           {activeTab === 'graduates' && (

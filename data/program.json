@@ -2,49 +2,109 @@
   {
     "id": "prog-1",
     "order": 1,
-    "time": "6:00 PM",
-    "title": "Guest Arrival & Seating",
-    "description": "Guests are welcomed and guided to their seats.",
+    "time": "6:30 PM",
+    "durationMinutes": 5,
+    "title": "Intro Video",
+    "description": "Short year-by-year recap video fast, followed by the transition into our graduation ceremony.",
     "isCurrent": true
   },
   {
     "id": "prog-2",
     "order": 2,
-    "time": "6:30 PM",
-    "title": "Opening Ceremony",
-    "description": "Official opening of the DGCI Graduation Ceremony.",
+    "time": "6:35 PM",
+    "durationMinutes": 5,
+    "title": "Graduates Entrance",
+    "description": "Entrance music plays as graduates enter the stage.",
     "isCurrent": false
   },
   {
     "id": "prog-3",
     "order": 3,
-    "time": "6:45 PM",
-    "title": "Official Speeches",
-    "description": "Speeches from university representatives and guests.",
+    "time": "6:40 PM",
+    "durationMinutes": 5,
+    "title": "National Anthems (Egyptian & French)",
+    "description": "Listening to the Egyptian and French National Anthems (Hymnes Égyptien et Français).",
     "isCurrent": false
   },
   {
     "id": "prog-4",
     "order": 4,
-    "time": "7:30 PM",
-    "title": "Certificate Distribution",
-    "description": "Graduates receive their certificates in official order.",
+    "time": "6:45 PM",
+    "durationMinutes": 5,
+    "title": "Speech: Dr. Farid Moharam",
+    "description": "Speech by Dr. Farid Moharam, Dean of the Faculty of Commerce at Ain Shams University.",
     "isCurrent": false
   },
   {
     "id": "prog-5",
     "order": 5,
-    "time": "9:00 PM",
-    "title": "Group Photos",
-    "description": "Official group and class photos.",
+    "time": "6:50 PM",
+    "durationMinutes": 5,
+    "title": "Speech: Dr. Iman",
+    "description": "Speech by Dr. Iman, Coordinatrice du DGCI auprès d'Ain Shams University.",
     "isCurrent": false
   },
   {
     "id": "prog-6",
     "order": 6,
-    "time": "9:30 PM",
-    "title": "Celebration Moment",
-    "description": "Closing celebration and memories.",
+    "time": "6:55 PM",
+    "durationMinutes": 5,
+    "title": "Speech: Dr. Mariam Etman",
+    "description": "Speech by Dr. Mariam Etman.",
+    "isCurrent": false
+  },
+  {
+    "id": "prog-7",
+    "order": 7,
+    "time": "7:00 PM",
+    "durationMinutes": 15,
+    "title": "Highest Honors Attestation & Ceremony",
+    "description": "Attestation Certificate award and ceremony for the 10 Highest Honors recipients.",
+    "isCurrent": false
+  },
+  {
+    "id": "prog-8",
+    "order": 8,
+    "time": "7:15 PM",
+    "durationMinutes": 5,
+    "title": "Graduates Speech (Arabic)",
+    "description": "Delivered by Youhanna Maher & Alain Fady.",
+    "isCurrent": false
+  },
+  {
+    "id": "prog-9",
+    "order": 9,
+    "time": "7:20 PM",
+    "durationMinutes": 5,
+    "title": "Graduates Speech (French)",
+    "description": "Delivered by Yasmine & Tarek.",
+    "isCurrent": false
+  },
+  {
+    "id": "prog-10",
+    "order": 10,
+    "time": "7:25 PM",
+    "durationMinutes": 10,
+    "title": "Memorial Video of DGCI 2026",
+    "description": "Graduates step down from the stage to watch the official DGCI 2026 memory video.",
+    "isCurrent": false
+  },
+  {
+    "id": "prog-11",
+    "order": 11,
+    "time": "7:35 PM",
+    "durationMinutes": 35,
+    "title": "License Certificates Distribution (L3)",
+    "description": "Graduates step onto the stage, receive their official License certificates, and take their places (58 Graduates).",
+    "isCurrent": false
+  },
+  {
+    "id": "prog-12",
+    "order": 12,
+    "time": "8:10 PM",
+    "durationMinutes": 20,
+    "title": "Conclusion & Celebration",
+    "description": "Closing remarks, music, dancing, hyping, and official group photos.",
     "isCurrent": false
   }
 ]
