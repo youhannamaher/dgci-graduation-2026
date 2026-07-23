@@ -49,7 +49,7 @@ export function formatMinutesToTime(totalMins: number): string {
 }
 
 /**
- * Dynamically calculates cumulative program timeline items based on a base start time.
+ * Dynamically calculates cumulative program timeline items based on base start time and live active station shifts.
  */
 export function calculateProgramSchedule(
   items: ProgramItem[],
@@ -70,32 +70,50 @@ export function calculateProgramSchedule(
   }
 
   const sorted = [...items].sort((a, b) => a.order - b.order);
+  const baseStartMins = parseTimeToMinutes(baseStartTime || sorted[0].time || '6:30 PM');
+  let currentMins = baseStartMins;
 
-  // If a program item is currently active (isCurrent), we can use the base start time or calculate from item 1
-  const startMins = parseTimeToMinutes(baseStartTime || sorted[0].time || '6:30 PM');
-  let currentMins = startMins;
-  let totalDurationMinutes = 0;
+  const resultList: CalculatedProgramItem[] = [];
 
-  const calculatedItems: CalculatedProgramItem[] = sorted.map((item) => {
+  for (let idx = 0; idx < sorted.length; idx++) {
+    const item = sorted[idx];
+
+    // If this item has a recorded actual start time (from live "Set Active"), anchor to it!
+    if (item.actualStartTime && item.actualStartTime.trim() !== '') {
+      const actualMins = parseTimeToMinutes(item.actualStartTime);
+      // Adjust previous item's calculated end time and reflected duration to match this actual start time
+      if (idx > 0 && resultList[idx - 1]) {
+        const prev = resultList[idx - 1];
+        const prevStartMins = parseTimeToMinutes(prev.calculatedStartTime);
+        const prevRealDuration = Math.max(1, actualMins - prevStartMins);
+        prev.durationMinutes = prevRealDuration;
+        prev.calculatedEndTime = formatMinutesToTime(actualMins);
+        prev.formattedRange = `${prev.calculatedStartTime} – ${prev.calculatedEndTime}`;
+      }
+      currentMins = actualMins;
+    }
+
     const duration = typeof item.durationMinutes === 'number' && item.durationMinutes > 0 ? item.durationMinutes : 5;
-    totalDurationMinutes += duration;
-
     const startStr = formatMinutesToTime(currentMins);
     const endMins = currentMins + duration;
     const endStr = formatMinutesToTime(endMins);
 
     currentMins = endMins;
 
-    return {
+    resultList.push({
       ...item,
       durationMinutes: duration,
       calculatedStartTime: startStr,
       calculatedEndTime: endStr,
       formattedRange: `${startStr} – ${endStr}`
-    };
-  });
+    });
+  }
 
-  const ceremonyEndTime = formatMinutesToTime(startMins + totalDurationMinutes);
+  const firstStartMins = resultList.length > 0 ? parseTimeToMinutes(resultList[0].calculatedStartTime) : baseStartMins;
+  const lastEndMins = resultList.length > 0 ? parseTimeToMinutes(resultList[resultList.length - 1].calculatedEndTime) : baseStartMins;
+
+  const totalDurationMinutes = Math.max(0, lastEndMins - firstStartMins);
+  const ceremonyEndTime = formatMinutesToTime(lastEndMins);
 
   const hours = Math.floor(totalDurationMinutes / 60);
   const mins = totalDurationMinutes % 60;
@@ -109,7 +127,7 @@ export function calculateProgramSchedule(
   }
 
   return {
-    calculatedItems,
+    calculatedItems: resultList,
     totalDurationMinutes,
     ceremonyEndTime,
     formattedTotalDuration

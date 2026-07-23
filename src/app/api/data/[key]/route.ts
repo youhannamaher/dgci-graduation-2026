@@ -68,6 +68,7 @@ const mapProgDbToClient = (p: any) => ({
   order: p.item_order || p.order,
   time: p.time,
   durationMinutes: p.duration_minutes ?? p.durationMinutes ?? 5,
+  actualStartTime: p.actual_start_time || p.actualStartTime || undefined,
   title: p.title,
   description: p.description || '',
   isCurrent: p.is_current ?? p.isCurrent ?? false
@@ -78,6 +79,7 @@ const mapProgClientToDb = (p: any) => ({
   item_order: p.order,
   time: p.time,
   duration_minutes: p.durationMinutes || 5,
+  actual_start_time: p.actualStartTime || null,
   title: p.title,
   description: p.description,
   is_current: p.isCurrent
@@ -151,7 +153,7 @@ export async function GET(
         case 'all': {
           const [info, prog, grads, msgs, pics, links] = await Promise.all([
             sql`SELECT url FROM media_links WHERE type = 'ceremony_info' LIMIT 1`,
-            sql`SELECT id, item_order as "order", time, duration_minutes as "durationMinutes", title, description, is_current as "isCurrent" FROM program_items ORDER BY item_order ASC`,
+            sql`SELECT id, item_order as "order", time, duration_minutes as "durationMinutes", actual_start_time as "actualStartTime", title, description, is_current as "isCurrent" FROM program_items ORDER BY item_order ASC`,
             sql`SELECT id, order_number as "order", full_name as "fullName", display_name as "displayName", photo_url as "photo", quote, linkedin, instagram, show_profile as "showProfile", bourse, master_program as "masterProgram", is_highest_honors as "isHighestHonors", honors_order as "honorsOrder" FROM graduates ORDER BY order_number ASC`,
             sql`SELECT id, message, sender_name as "senderName", is_anonymous as "isAnonymous", target_type as "targetType", target_graduate_ids as "targetGraduateIds", relation, status, created_at as "createdAt" FROM messages ORDER BY created_at DESC`,
             sql`SELECT id, url, caption, uploaded_by as "uploadedBy", status, created_at as "createdAt" FROM photos ORDER BY created_at DESC`,
@@ -199,7 +201,7 @@ export async function GET(
         }
 
         case 'program': {
-          const rows = await sql`SELECT id, item_order as "order", time, duration_minutes as "durationMinutes", title, description, is_current as "isCurrent" FROM program_items ORDER BY item_order ASC`;
+          const rows = await sql`SELECT id, item_order as "order", time, duration_minutes as "durationMinutes", actual_start_time as "actualStartTime", title, description, is_current as "isCurrent" FROM program_items ORDER BY item_order ASC`;
           if (rows.length === 0) {
             return NextResponse.json(readLocalJson('program.json'));
           }
@@ -477,8 +479,8 @@ export async function POST(
         case 'program': {
           if (action === 'add') {
             await sql`
-              INSERT INTO program_items (id, item_order, time, duration_minutes, title, description, is_current)
-              VALUES (${data.id}, ${data.order}, ${data.time}, ${data.durationMinutes || 5}, ${data.title}, ${data.description}, ${data.isCurrent})
+              INSERT INTO program_items (id, item_order, time, duration_minutes, actual_start_time, title, description, is_current)
+              VALUES (${data.id}, ${data.order}, ${data.time}, ${data.durationMinutes || 5}, ${data.actualStartTime || null}, ${data.title}, ${data.description}, ${data.isCurrent})
             `;
             return NextResponse.json({ success: true });
           }
@@ -491,6 +493,7 @@ export async function POST(
               SET 
                 time = ${fields.time !== undefined ? fields.time : sql`time`},
                 duration_minutes = ${fields.durationMinutes !== undefined ? fields.durationMinutes : sql`duration_minutes`},
+                actual_start_time = ${fields.actualStartTime !== undefined ? fields.actualStartTime : sql`actual_start_time`},
                 title = ${fields.title !== undefined ? fields.title : sql`title`},
                 description = ${fields.description !== undefined ? fields.description : sql`description`},
                 is_current = ${fields.isCurrent !== undefined ? fields.isCurrent : sql`is_current`},

@@ -162,8 +162,22 @@ export default function AdminPage() {
   };
 
   const handleToggleCurrentEvent = async (id: string, current: boolean) => {
-    const success = await updateProgramItem(id, { isCurrent: !current });
+    const nowTimeStr = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+    const success = await updateProgramItem(id, {
+      isCurrent: !current,
+      actualStartTime: !current ? nowTimeStr : ''
+    });
     if (success) triggerSaveNotification();
+  };
+
+  const handleResetProgramTimings = async () => {
+    if (confirm('Reset all live actual start times back to the scheduled start time?')) {
+      const promises = program.map((item) =>
+        updateProgramItem(item.id, { actualStartTime: '', isCurrent: false })
+      );
+      await Promise.all(promises);
+      triggerSaveNotification();
+    }
   };
 
   const handleNewProgClick = () => {
@@ -796,20 +810,71 @@ export default function AdminPage() {
 
             return (
               <div className="space-y-4">
+                {/* Header Summary & Actions */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gold/5 border border-gold/20 p-3.5 rounded-xl">
                   <div>
                     <h3 className="font-serif font-bold text-sm text-gold-light">Ceremony Timeline Manager</h3>
                     <p className="text-gray-400 text-[11px] font-sans">
-                      Start Time: <strong className="text-gold">{ceremonyInfo.time || '6:30 PM'}</strong> &bull; Total: <strong className="text-gold">{formattedTotalDuration}</strong> &bull; End: <strong className="text-gold">{ceremonyEndTime}</strong>
+                      Start Time: <strong className="text-gold">{ceremonyInfo.time || '6:30 PM'}</strong> &bull; Total Duration: <strong className="text-gold">{formattedTotalDuration}</strong> &bull; Est. End: <strong className="text-gold">{ceremonyEndTime}</strong>
                     </p>
                   </div>
 
-                  <button
-                    onClick={handleNewProgClick}
-                    className="bg-gold-gradient text-navy-dark text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shrink-0 self-start sm:self-auto"
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Add Timeline Event
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleResetProgramTimings}
+                      className="bg-navy-dark text-gray-300 border border-gold/20 text-xs px-3 py-1.5 rounded-lg font-semibold hover:border-gold/40 hover:text-gold transition-all"
+                      title="Reset all live actual start times back to default scheduled times"
+                    >
+                      Reset Live Shifts
+                    </button>
+                    <button
+                      onClick={handleNewProgClick}
+                      className="bg-gold-gradient text-navy-dark text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shrink-0"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Add Timeline Event
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Ceremony Start Time Adjuster */}
+                <div className="glass-card rounded-xl p-3 border border-gold/20 bg-[#03070d]/60 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <span className="text-gold font-semibold flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5" /> Quick Ceremony Start Time Adjuster:
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {['6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM'].map((tStr) => (
+                      <button
+                        key={tStr}
+                        onClick={async () => {
+                          const ok = await updateCeremonyInfo({ ...ceremonyInfo, time: tStr });
+                          if (ok) triggerSaveNotification();
+                        }}
+                        className={`px-2.5 py-1 rounded text-[10px] font-bold border transition-all ${
+                          ceremonyInfo.time === tStr
+                            ? 'bg-gold text-navy-dark border-gold shadow-[0_0_8px_rgba(212,175,55,0.3)]'
+                            : 'bg-navy-dark text-gray-300 border-gold/20 hover:border-gold/40'
+                        }`}
+                      >
+                        {tStr}
+                      </button>
+                    ))}
+                    <input
+                      type="text"
+                      placeholder="e.g. 7:15 PM"
+                      defaultValue={ceremonyInfo.time || '6:30 PM'}
+                      onKeyDown={async (e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const val = (e.target as HTMLInputElement).value.trim();
+                          if (val) {
+                            const ok = await updateCeremonyInfo({ ...ceremonyInfo, time: val });
+                            if (ok) triggerSaveNotification();
+                          }
+                        }
+                      }}
+                      className="bg-[#03070d] border border-gold/20 rounded px-2 py-0.5 text-white w-24 text-[10px]"
+                    />
+                  </div>
                 </div>
 
                 {/* Event Editor Form */}
@@ -819,7 +884,7 @@ export default function AdminPage() {
                     <form onSubmit={handleSaveProgramItem} className="space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                         <div>
-                          <label className="block text-gray-400 mb-1">Start Time (Override)</label>
+                          <label className="block text-gray-400 mb-1">Scheduled Start Time</label>
                           <input
                             type="text"
                             placeholder="e.g. 6:30 PM"
@@ -901,7 +966,7 @@ export default function AdminPage() {
                         <th className="p-3">Dynamic Range</th>
                         <th className="p-3">Duration</th>
                         <th className="p-3">Event Title</th>
-                        <th className="p-3">Now Happening?</th>
+                        <th className="p-3">Live Status</th>
                         <th className="p-3 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -909,7 +974,7 @@ export default function AdminPage() {
                       {calculatedItems.map((item) => (
                         <tr key={item.id} className={`border-b border-gold/5 transition-all ${item.isCurrent ? 'bg-gold/10 text-white font-semibold' : 'hover:bg-gold/5 text-gray-300'}`}>
                           <td className="p-3 font-semibold text-gold">#{item.order}</td>
-                          <td className="p-3 font-mono font-semibold text-gold">{item.formattedRange}</td>
+                          <td className="p-3 font-mono font-bold text-gold">{item.formattedRange}</td>
                           <td className="p-3">
                             <span className="bg-gold/10 text-gold px-2 py-0.5 rounded border border-gold/20 font-sans text-[10px]">
                               ⏱️ {item.durationMinutes}m
@@ -918,6 +983,11 @@ export default function AdminPage() {
                           <td className="p-3">
                             <span className="font-semibold block text-white">{item.title}</span>
                             <span className="text-[10px] text-gray-400 line-clamp-1">{item.description}</span>
+                            {item.actualStartTime && (
+                              <span className="text-[9px] text-emerald-300 block mt-0.5 font-mono">
+                                ⚡ Started Live at {item.actualStartTime}
+                              </span>
+                            )}
                           </td>
                           <td className="p-3">
                             <button
@@ -928,7 +998,7 @@ export default function AdminPage() {
                                   : 'bg-[#03070d] text-gray-400 border border-gold/20 hover:text-gold hover:border-gold/40'
                               }`}
                             >
-                              {item.isCurrent ? '⚡ Active Now' : 'Set Active'}
+                              {item.isCurrent ? '⚡ Active Now' : 'Start Station Now'}
                             </button>
                           </td>
                           <td className="p-3 text-right flex justify-end gap-1.5">

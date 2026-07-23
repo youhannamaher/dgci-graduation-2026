@@ -71,14 +71,16 @@ CREATE TABLE IF NOT EXISTS program_items (
     item_order INTEGER NOT NULL,
     time TEXT NOT NULL,
     duration_minutes INTEGER DEFAULT 5,
+    actual_start_time TEXT,
     title TEXT NOT NULL,
     description TEXT,
     is_current BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Ensure duration_minutes exists if table was previously created
+-- Ensure duration_minutes & actual_start_time exist if table was previously created
 ALTER TABLE program_items ADD COLUMN IF NOT EXISTS duration_minutes INTEGER DEFAULT 5;
+ALTER TABLE program_items ADD COLUMN IF NOT EXISTS actual_start_time TEXT;
 
 -- Enable RLS for program_items
 ALTER TABLE program_items ENABLE ROW LEVEL SECURITY;
